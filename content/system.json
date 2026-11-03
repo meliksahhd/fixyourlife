@@ -325,7 +325,7 @@
     "i_t_identity": {
       "role": "interrupt",
       "texts": [
-        "Kimliğin: '{identty}'. Şu an yaptığın şey o kişiye uyuyor mu?",
+        "Kimliğin: '{identity}'. Şu an yaptığın şey o kişiye uyuyor mu?",
         "Kimliğin: '{identity}'. O kişi şu an senin yaptığını mı yapardı?",
         "Kimlik cümlen: '{identity}'. Son bir saat bunu kanıtlıyor mu?"
       ],
