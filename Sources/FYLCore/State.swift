@@ -58,8 +58,11 @@ public enum Store {
     private static let encoder: JSONEncoder = { let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; return e }()
     private static let decoder: JSONDecoder = { let x = JSONDecoder(); x.dateDecodingStrategy = .iso8601; return x }()
 
-    public static func load(_ url: URL) -> AppState {
-        guard let data = try? Data(contentsOf: url) else { return AppState() }
+    /// Dosya yoksa yeni durum; bozuksa kenara alır ve yeni durum; **var ama okunamıyorsa nil** (ör. yeniden başlatma
+    /// sonrası kilit açılmadan). nil gelince kaydetme: gerçek verinin üzerine boş durum yazılır.
+    public static func load(_ url: URL) -> AppState? {
+        guard FileManager.default.fileExists(atPath: url.path) else { return AppState() }
+        guard let data = try? Data(contentsOf: url) else { return nil }
         if let s = try? decoder.decode(AppState.self, from: data) { return s }
         let dest = url.deletingLastPathComponent()
             .appendingPathComponent("state-corrupt-\(Int(Date().timeIntervalSince1970)).json")
