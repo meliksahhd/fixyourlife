@@ -7,8 +7,8 @@ final class PlannerTests: XCTestCase {
 
     override func setUp() { state = AppState(); state.profile = profile; state.loopStart = d("2026-11-10 00:00") }
 
-    func run(now: Date? = nil) -> [PlannedItem] { plan(now: now ?? self.now, state: state, content: fixture(), calendar: cal) }
-    func items(on day: String) -> [PlannedItem] { run().filter { logicalDay($0.date, calendar: cal) == d(day + " 00:00") } }
+    func planned(now: Date? = nil) -> [PlannedItem] { plan(now: now ?? self.now, state: state, content: fixture(), calendar: cal) }
+    func items(on day: String) -> [PlannedItem] { planned().filter { logicalDay($0.date, calendar: cal) == d(day + " 00:00") } }
     func times(of day: String) -> [Int] {
         items(on: day).filter { $0.id.contains("-i") }.map { Int($0.date.timeIntervalSince(d(day + " 00:00")) / 60) }
     }
@@ -25,25 +25,25 @@ final class PlannerTests: XCTestCase {
         XCTAssertTrue(ints.allSatisfy { !$0.text.isEmpty && !$0.text.contains("{") })
     }
     func testWindowCoversSixDaysPlusReopen() {
-        let p = run()
+        let p = planned()
         XCTAssertEqual(Set(p.filter { $0.id != "plan-reopen" }.map { logicalDay($0.date, calendar: cal) }).count, 6)
         XCTAssertEqual(p.last?.id, "plan-reopen"); XCTAssertEqual(p.last?.date, d("2026-11-16 10:00"))
         XCTAssertEqual(p.last?.text, "Uygulamayı aç")
         XCTAssertLessThanOrEqual(p.count, 60)
     }
-    func testDeterministic() { XCTAssertEqual(run(), run()); XCTAssertNotEqual(times(of: "2026-11-10"), times(of: "2026-11-11")) }
-    func testPastItemsExcluded() { XCTAssertTrue(run(now: d("2026-11-10 15:00")).allSatisfy { $0.date > d("2026-11-10 15:00") }) }
-    func testNoDailyBeforeLoopStart() { state.loopStart = d("2026-11-12 00:00"); XCTAssertTrue(run().allSatisfy { $0.date >= d("2026-11-12 00:00") }) }
+    func testDeterministic() { XCTAssertEqual(planned(), planned()); XCTAssertNotEqual(times(of: "2026-11-10"), times(of: "2026-11-11")) }
+    func testPastItemsExcluded() { XCTAssertTrue(planned(now: d("2026-11-10 15:00")).allSatisfy { $0.date > d("2026-11-10 15:00") }) }
+    func testNoDailyBeforeLoopStart() { state.loopStart = d("2026-11-12 00:00"); XCTAssertTrue(planned().allSatisfy { $0.date >= d("2026-11-12 00:00") }) }
     func testSetupDaySkipsPastTimes() {
         state.profile = nil; state.loopStart = nil; state.setupDate = d("2026-11-10 00:00")
-        let p = run(now: d("2026-11-10 14:00"))
+        let p = planned(now: d("2026-11-10 14:00"))
         XCTAssertEqual(p.map(\.nodeId), ["synthesis"]); XCTAssertEqual(p.first?.date, d("2026-11-10 22:00"))
     }
-    func testSkipsInterruptWithEmptyVar() { state.profile!.enemy = ""; XCTAssertFalse(run().contains { $0.nodeId == "i3" }) }
+    func testSkipsInterruptWithEmptyVar() { state.profile!.enemy = ""; XCTAssertFalse(planned().contains { $0.nodeId == "i3" }) }
     func testChainUntilDelaysInterrupts() {
         let first = items(on: "2026-11-10").first { $0.id.hasSuffix("-i0") }!
         state.chainUntil = first.date.addingTimeInterval(600)
-        let moved = run(now: first.date.addingTimeInterval(-300)).first { $0.id == first.id }!
+        let moved = planned(now: first.date.addingTimeInterval(-300)).first { $0.id == first.id }!
         XCTAssertGreaterThanOrEqual(moved.date, state.chainUntil!)
     }
     func testHarvestSent() {
