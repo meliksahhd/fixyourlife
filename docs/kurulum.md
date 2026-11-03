@@ -31,8 +31,13 @@ Sen 2. adımdaki Apple Kimliği numarasını ilettikten sonra `codemagic.yaml` i
 
 İlk derleme gelince bunları dene, aksayanı bana yaz:
 
-- [ ] Uygulama açılıyor, "FixYourLife" yazısı görünüyor.
-- [ ] Bildirim izni istemi çıkıyor, "İzin Ver" diyorsun.
-- [ ] "Test: örnek profil + 1 dk sonra kesinti" butonuna bas, ana ekrana dön (uygulamayı kaydırıp kapatma). Yaklaşık 1 dakika sonra bildirim geliyor. Kilit ekranında "Sana bir sorum var" yazıyor (Ayarlar → Bildirimler → Önizlemeleri Göster: "Kilit Açıkken" iken).
+- [ ] Uygulama açılıyor, karşılama ekranı görünüyor.
+- [ ] "Bildirimlere izin ver" → izin istemi çıkıyor, "İzin Ver" diyorsun.
+- [ ] "Bildirim ayarlarını aç" seni FixYourLife'ın bildirim ayarlarına götürüyor. Önizlemeleri Göster: **Kilit Açıkken** yap.
+- [ ] Kurulum gününü seçip kaydediyorsun, "Hazırlan" ekranı tarihi doğru gösteriyor.
+- [ ] Kurulum günü: sabah protokolünü sonuna kadar git (Geri de çalışıyor). Uygulamayı kapatıp açınca kaldığın sorudan devam ediyor.
+- [ ] Gün içi sorular 11:00, 12:30, 13:30, 15:15, 16:15, 17:00, 18:30, 19:30, 21:00'de, sentez hatırlatması 22:00'de geliyor.
+- [ ] Akşam sentezinde zorunlu alanlardan biri boşken "Oyunu başlat" pasif. Hepsi doluyken kaydediyorsun, oyun tahtası açılıyor.
+- [ ] Tahtada Ayarlar → **Test bildirimi**. Ana ekrana dön (uygulamayı kaydırıp kapatma). Yaklaşık 1 dakika sonra bildirim geliyor, kilitliyken "Sana bir sorum var" yazıyor.
 - [ ] Bildirime uzun bas, butonlar görünüyor. **"Çoğu ölüydü"** butonuna bas: uygulama açılmadan birkaç saniye içinde takip sorusu geliyor.
 - [ ] Takip sorusundaki "Yazıyorum" butonunda klavye açılıyor, yazıp **Gönder** diyebiliyorsun.

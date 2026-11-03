@@ -70,13 +70,10 @@ import FYLCore
         await applying?.value
     }
 
-    // GEÇİCİ test kancası (Task 7 doğrulaması; Task 8'de kaldırılır). Durumu değiştirmez:
-    // örnek profille bir kesinti (takipli + metin girişli dal) 60 sn sonra gelir.
+    /// Ayarlardaki "Test bildirimi": takipli + metin girişli bir dalı olan kesinti 60 sn sonra gelir.
+    /// Bildirimlerin, butonların ve takiplerin cihazda çalıştığını kontrol etmek için. Durumu değiştirmez.
     func sendTestInterrupt() {
-        let sample = Profile(identity: "Yaratıcı biri", antiVision: "Masa başında çürüyen", vision: "Kendi işini yapan",
-                             enemy: "Onay ihtiyacı", yearGoal: "İlk ürün", monthProject: "Uygulamayı bitir", whyStuck: "",
-                             quests: ["Oku", "Yaz"], constraints: ["Uyku"], monthStart: Date())
-        guard let text = content.nodes["i_alive"]?.texts.lazy.compactMap({ render($0, profile: sample, questIndex: nil) }).first
+        guard let text = content.nodes["i_alive"]?.texts.lazy.compactMap({ render($0, profile: self.state.profile, questIndex: nil) }).first
         else { return }
         Task { await notifier.send(FollowUp(nodeId: "i_alive", text: text, questIndex: nil, depth: 1), itemId: "test-\(Int(Date().timeIntervalSince1970))", after: 60) }
     }
@@ -89,18 +86,21 @@ struct FixYourLifeApp: App {
 
     init() { _ = AppModel.shared }   // delegate'i uygulama açılırken ata
 
+    /// Protokol yeniden çalışıyorsa (profil var), kurulum günü gelince kurulum ekranı açılır; o güne kadar tahta.
+    private var isSetupDay: Bool {
+        guard let s = model.state.setupDate else { return false }
+        return Calendar.current.startOfDay(for: s) <= logicalDay(Date(), calendar: .current)
+    }
+
     var body: some Scene {
         WindowGroup {
-            VStack(spacing: 24) {
-                Text("FixYourLife")
-                if model.state.profile == nil {
-                    Button("Test: örnek profil + 1 dk sonra kesinti") { model.sendTestInterrupt() }
-                }
+            Group {
+                if model.state.profile == nil || isSetupDay { SetupView() } else { BoardView() }
             }
+            .environmentObject(model)
         }
         .onChange(of: phase, initial: true) { _, p in
             if p == .active {
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
                 model.replan()
             } else if p == .background {
                 model.save()
