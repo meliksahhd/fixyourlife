@@ -1,0 +1,458 @@
+{
+  "version": 1,
+  "placeholder": "Sana bir sorum var",
+  "reopenText": "Planlı sorular bitiyor. Aç ki yarın da gelsin.",
+  "protocolMorning": [
+    {
+      "title": "Acıyı gör",
+      "questions": [
+        "Birlikte yaşamayı öğrendiğin donuk, sürekli memnuniyetsizlik ne? Derin acı değil; katlanmayı öğrendiğin şey. (Ondan nefret etmezsen ona katlanırsın.)",
+        "Sürekli şikâyet edip hiç değiştirmediğin şey ne? Geçen yıl en sık dile getirdiğin üç şikâyeti yaz.",
+        "Her şikâyet için: Sözlerini değil davranışını izleyen biri, aslında ne istediğin sonucuna varırdı?",
+        "Şu anki hayatınla ilgili hangi gerçeği, derinden saygı duyduğun birine itiraf etmek dayanılmaz olurdu?"
+      ]
+    },
+    {
+      "title": "Anti-vizyon",
+      "questions": [
+        "Önümüzdeki beş yıl hiçbir şey değişmezse sıradan bir Salı gününü anlat. Nerede uyanıyorsun? Bedenin nasıl hissediyor? Aklına gelen ilk şey ne? Etrafında kim var? 09:00 ile 18:00 arası ne yapıyorsun? Saat 22:00'de nasıl hissediyorsun?",
+        "Şimdi aynısını on yıl için yap. Neleri kaçırdın? Hangi fırsatlar kapandı? Kim senden vazgeçti? Sen odada yokken insanlar senin hakkında ne diyor?",
+        "Hayatının sonundasın. Güvenli versiyonu yaşadın. Kalıbı hiç kırmadın. Bedeli neydi? Neyi hissetmene, denemene ya da olmana hiç izin vermedin?",
+        "Az önce anlattığın geleceği zaten yaşayan biri var mı hayatında? Aynı yolda senden beş, on, yirmi yıl önde biri? Ona dönüşmeyi düşününce ne hissediyorsun?",
+        "Gerçekten değişmek için hangi kimlikten vazgeçmen gerekirdi? (\"Ben … tipte biriyim\") Artık o kişi olmamanın sosyal bedeli ne olurdu?",
+        "Değişmemenin en utanç verici sebebi ne? Seni makul değil; zayıf, korkak ya da tembel gösteren sebep.",
+        "Şu anki davranışın bir tür kendini korumaysa, tam olarak neyi koruyorsun? Bu koruma sana neye mal oluyor?"
+      ]
+    },
+    {
+      "title": "Vizyon (MVP)",
+      "questions": [
+        "Bir dakikalığına gerçekçiliği unut. Parmaklarını şıklatıp üç yıl sonra bambaşka bir hayat yaşayabilseydin, gerçekçi olanı değil, gerçekten istediğini, sıradan bir Salı nasıl görünürdü? Beş yıllık Salı kadar ayrıntılı yaz.",
+        "O hayatın zorlama değil doğal gelmesi için kendin hakkında neye inanman gerekirdi? Kimlik cümleni yaz: \"Ben … tipte biriyim.\"",
+        "Zaten o kişi olsaydın bu hafta yapacağın tek şey ne?"
+      ]
+    }
+  ],
+  "setupSchedule": [
+    { "time": "11:00", "node": "setup_avoid" },
+    { "time": "12:30", "node": "setup_deep_identity" },
+    { "time": "13:30", "node": "setup_filmed" },
+    { "time": "15:15", "node": "setup_direction" },
+    { "time": "16:15", "node": "setup_deep_safety" },
+    { "time": "17:00", "node": "setup_pretend" },
+    { "time": "18:30", "node": "setup_deep_smallest" },
+    { "time": "19:30", "node": "setup_protect" },
+    { "time": "21:00", "node": "setup_alive" },
+    { "time": "22:00", "node": "synthesis" }
+  ],
+  "nodes": {
+    "morning": {
+      "role": "system",
+      "texts": [
+        "Kimliğin: '{identity}'. Bugünün görevleri: {todayQuests}.",
+        "Bugünün görevleri: {todayQuests}. Bunları yapan kişi: '{identity}'. Gerisi gürültü.",
+        "'{identity}' — bugün bunu kanıtlayacak görevler: {todayQuests}."
+      ],
+      "buttons": [
+        { "title": "Bu kişiyim, başlıyorum", "tag": "basliyorum" },
+        { "title": "Görevleri değiştir", "tag": "gorev_degistir", "foreground": true }
+      ]
+    },
+    "quest_check": {
+      "role": "system",
+      "perQuest": true,
+      "after": "day_rating",
+      "texts": [
+        "Görev: {quest}. Yaptın mı?",
+        "Bugünün görevi: {quest}. Sonuç?",
+        "{quest} — söz değil, hareket sayılır. Yapıldı mı?"
+      ],
+      "buttons": [
+        { "title": "Yaptım", "tag": "yaptim" },
+        { "title": "Kısmen", "tag": "kismen" },
+        { "title": "Yapmadım", "tag": "yapmadim" }
+      ]
+    },
+    "day_rating": {
+      "role": "system",
+      "texts": [
+        "Bugün en canlı ne zamandın, en ölü ne zaman? Toplamda gün hangisiydi?",
+        "Bugünün geneline bak: canlı mı geçti, otopilotta mı?",
+        "Tek kelimeyle bugün: canlı mı, ölü mü?"
+      ],
+      "buttons": [
+        { "title": "Canlı", "tag": "canli" },
+        { "title": "Karışık", "tag": "karisik" },
+        { "title": "Ölü", "tag": "olu" }
+      ]
+    },
+    "reopen": {
+      "role": "system",
+      "texts": [
+        "Planlı sorular bitiyor. Açmazsan yarından sonra sessizlik var; otopilotun en sevdiği şey.",
+        "Birkaç gündür uygulamayı açmadın. Açmazsan sorular duracak."
+      ],
+      "buttons": [
+        { "title": "Aç", "tag": "ac", "foreground": true }
+      ]
+    },
+    "synthesis": {
+      "role": "setup",
+      "texts": [
+        "Gün bitti. Şimdi sentez: neden takıldın, asıl düşman ne, reddettiğin hayat ve kurduğun hayat tek cümlede, 1 yıl, 1 ay ve yarının görevleri. Kâğıt ve 20 dakika."
+      ],
+      "buttons": [
+        { "title": "Sentezi aç", "tag": "sentez_ac", "foreground": true }
+      ]
+    },
+
+    "setup_avoid": {
+      "role": "setup",
+      "texts": ["Şu an yaptığın şeyle neyden kaçıyorsun?"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Kaçıyordum", "tag": "kaciyordum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_deep_identity": {
+      "role": "setup",
+      "texts": ["Bu sabah yazdığın kimlik cümlesini düşün (\"Ben … tipte biriyim\"). İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Görünmeye çalışıyorum", "tag": "gorunme_ihtiyaci" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_filmed": {
+      "role": "setup",
+      "texts": ["Biri son iki saatini filme çekseydi, hayattan ne istediğin sonucuna varırdı?"],
+      "buttons": [
+        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
+        { "title": "Güvenliği, rahatı", "tag": "guvenlik" },
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_direction": {
+      "role": "setup",
+      "texts": ["Nefret ettiğin hayata mı ilerliyorsun, istediğin hayata mı?"],
+      "buttons": [
+        { "title": "İstediğim hayata", "tag": "istedigim_hayat" },
+        { "title": "Nefret ettiğime", "tag": "nefret_ettigim_hayat" },
+        { "title": "Emin değilim", "tag": "emin_degilim" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_deep_safety": {
+      "role": "setup",
+      "texts": ["Hayatının neresinde canlılığı güvenlikle takas ediyorsun?"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Bir yer buldum", "tag": "takas_var" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_pretend": {
+      "role": "setup",
+      "texts": ["Önemli değilmiş gibi davrandığın en önemli şey ne?"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Ne olduğunu biliyorum", "tag": "farkinda" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_deep_smallest": {
+      "role": "setup",
+      "texts": ["Olmak istediğin kişinin, yarın olabileceğin en küçük versiyonu ne?"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Belli, yarın yapacağım", "tag": "plan_var" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_protect": {
+      "role": "setup",
+      "texts": ["Bugün neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? (İpucu: yaptığın çoğu şeyi.)"],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Çoğu kimlik korumasıydı", "tag": "kimlik_korumasi" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "setup_alive": {
+      "role": "setup",
+      "texts": ["Bugün en canlı ne zaman hissettin? En ölü ne zaman?"],
+      "buttons": [
+        { "title": "Canlı anlar vardı", "tag": "canli_an" },
+        { "title": "Çoğu ölüydü", "tag": "olu_gun" },
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+
+    "i_avoid": {
+      "role": "interrupt",
+      "texts": [
+        "Şu an yaptığın şeyle neyden kaçıyorsun?",
+        "Şu an yaptığın şey, yapman gereken neyin yerini tutuyor?",
+        "Şu anki meşguliyetin seni hangi zor şeyden uzak tutuyor?"
+      ],
+      "buttons": [
+        { "title": "Bir şeyden kaçıyorum", "tag": "kaciyordum", "next": "f_escape" },
+        { "title": "Kaçmıyorum", "tag": "kacmiyordum" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_filmed": {
+      "role": "interrupt",
+      "texts": [
+        "Biri son iki saatini filme çekseydi, hayattan ne istediğin sonucuna varırdı?",
+        "Son iki saatin bir belgesel olsa, izleyen senin ne istediğini söylerdi?",
+        "Sözlerini unut. Son iki saatteki hareketlerin hayattan ne istediğini söylüyor?"
+      ],
+      "buttons": [
+        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
+        { "title": "Güvenliği, rahatı", "tag": "guvenlik", "next": "f_escape" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_direction": {
+      "role": "interrupt",
+      "texts": [
+        "Nefret ettiğin hayata mı, istediğin hayata mı ilerliyorsun?",
+        "Şu an yaptığın şey seni hangi hayata taşıyor: nefret ettiğine mi, istediğine mi?",
+        "Son birkaç saat bir yön çizdiyse: nefret ettiğin hayata mı, istediğin hayata mı?"
+      ],
+      "buttons": [
+        { "title": "İstediğim hayata", "tag": "istedigim_hayat", "next": "f_direction_ok" },
+        { "title": "Nefret ettiğime", "tag": "nefret_ettigim_hayat", "next": "f_escape" },
+        { "title": "Emin değilim", "tag": "emin_degilim", "next": "f_filmed" }
+      ]
+    },
+    "i_pretend": {
+      "role": "interrupt",
+      "texts": [
+        "Önemli değilmiş gibi davrandığın en önemli şey ne?",
+        "Hangi önemli şeyi \"sonra bakarım\" diye küçültüyorsun?",
+        "Görmezden geldiğin ama her şeyi değiştirecek olan şey ne?"
+      ],
+      "buttons": [
+        { "title": "Ne olduğunu biliyorum", "tag": "farkinda", "next": "f_pretend_step" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_protect": {
+      "role": "interrupt",
+      "texts": [
+        "Bugün neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? İpucu: çoğunu.",
+        "Bugün yaptıklarından hangisi istekti, hangisi \"ben böyle biriyim\" savunması?",
+        "Bugünkü kararlarının kaçı olmak istediğin kişiden değil, eski kimliğinden geldi?"
+      ],
+      "buttons": [
+        { "title": "Çoğu kimlik korumasıydı", "tag": "kimlik_korumasi", "next": "f_protect_what" },
+        { "title": "Çoğu gerçek istekti", "tag": "gercek_istek" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_alive": {
+      "role": "interrupt",
+      "texts": [
+        "Bugün en canlı ne zaman hissettin? En ölü ne zaman?",
+        "Bugünün hangi anında gerçekten oradaydın, hangisinde sadece vakit öldürdün?",
+        "Bugün seni ne canlandırdı, ne söndürdü?"
+      ],
+      "buttons": [
+        { "title": "Canlı anlar vardı", "tag": "canli_an" },
+        { "title": "Çoğu ölüydü", "tag": "olu_gun", "next": "f_smallest" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+
+    "i_deep_identity": {
+      "role": "interrupt",
+      "texts": [
+        "Kimliğin: '{identity}'. İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?",
+        "'{identity}' — bu kişi olmak mı istiyorsun, öyle görünmek mi? Görünme ihtiyacını bıraksan ne değişirdi?",
+        "Kimse seni '{identity}' diye görmeseydi, bugün yaptıklarından hangisini yine yapardın?"
+      ],
+      "buttons": [
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Görünmeye çalışıyorum", "tag": "gorunme_ihtiyaci" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "i_deep_safety": {
+      "role": "interrupt",
+      "texts": [
+        "Hayatının neresinde canlılığı güvenlikle takas ediyorsun?",
+        "Hangi alanda \"garanti olsun\" diye canlı hissetmekten vazgeçiyorsun?",
+        "Güvenli olduğu için tuttuğun ama seni söndüren şey ne?"
+      ],
+      "buttons": [
+        { "title": "Bir yer buldum", "tag": "takas_var" },
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "i_deep_smallest": {
+      "role": "interrupt",
+      "texts": [
+        "Olmak istediğin kişinin, yarın olabileceğin en küçük versiyonu ne?",
+        "Kimliğin: '{identity}'. Bu kişinin en küçük hâli yarın ne yapar?",
+        "Yarın, olmak istediğin kişinin küçük ama gerçek bir versiyonu olmak için tek bir şey: ne?"
+      ],
+      "buttons": [
+        { "title": "Belli, yarın yapacağım", "tag": "plan_var" },
+        { "title": "Düşündüm", "tag": "dusundum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+
+    "i_t_antivision": {
+      "role": "interrupt",
+      "texts": [
+        "Anti-vizyonun: '{antiVision}'. Son 2 saat buna mı benzedi?",
+        "Reddettiğin hayat: '{antiVision}'. Şu an yaptığın şey oraya bir adım mı?",
+        "Anti-vizyonun: '{antiVision}'. Bugünkü hâlinle oraya mı gidiyorsun?"
+      ],
+      "buttons": [
+        { "title": "Evet", "tag": "anti_vizyona_yakin", "next": "f_escape" },
+        { "title": "Hayır", "tag": "anti_vizyondan_uzak" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_t_identity": {
+      "role": "interrupt",
+      "texts": [
+        "Kimliğin: '{identty}'. Şu an yaptığın şey o kişiye uyuyor mu?",
+        "Kimliğin: '{identity}'. O kişi şu an senin yaptığını mı yapardı?",
+        "Kimlik cümlen: '{identity}'. Son bir saat bunu kanıtlıyor mu?"
+      ],
+      "buttons": [
+        { "title": "Evet", "tag": "kimlige_uygun" },
+        { "title": "Hayır", "tag": "kimlige_aykiri", "next": "f_escape" },
+        { "title": "Emin değilim", "tag": "emin_degilim", "next": "f_filmed" }
+      ]
+    },
+    "i_t_enemy": {
+      "role": "interrupt",
+      "texts": [
+        "Düşmanın: '{enemy}'. Bugün kazandı mı?",
+        "Asıl düşmanın: '{enemy}'. Bugün bir kararını senin yerine verdi mi?",
+        "Düşmanın: '{enemy}'. Son birkaç saatte direksiyonda o muydu?"
+      ],
+      "buttons": [
+        { "title": "Evet", "tag": "dusman_kazandi", "next": "f_identity_30" },
+        { "title": "Hayır", "tag": "dusman_kazanamadi" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "i_t_vision": {
+      "role": "interrupt",
+      "texts": [
+        "Vizyonun: '{vision}'. Bugün ona doğru somut bir adım attın mı?",
+        "Kurduğun hayat: '{vision}'. Son 3 saatte onun için bir şey yaptın mı?",
+        "Vizyonun: '{vision}'. Bugünkü saatlerin oraya mı aktı?"
+      ],
+      "buttons": [
+        { "title": "Evet", "tag": "vizyon_adim" },
+        { "title": "Hayır", "tag": "vizyon_adim_yok", "next": "f_identity_30" }
+      ]
+    },
+    "i_t_boss": {
+      "role": "interrupt",
+      "texts": [
+        "Bu ayın boss'u: '{monthProject}'. Bugün ona bir darbe indirdin mi?",
+        "Boss savaşı: '{monthProject}'. Bugün ilerleme var mı?",
+        "1 aylık projen: '{monthProject}'. Bugün ona gerçek bir saat verdin mi?"
+      ],
+      "buttons": [
+        { "title": "Evet", "tag": "boss_ilerleme" },
+        { "title": "Hayır", "tag": "boss_ilerleme_yok", "next": "f_escape" }
+      ]
+    },
+
+    "f_direction_ok": {
+      "role": "followup",
+      "texts": [
+        "Not edildi. Söz değil hareket sayılır; akşam görevler gösterecek.",
+        "Tamam. Kanıtı akşam kapanışında görürüz."
+      ],
+      "buttons": [
+        { "title": "Tamam", "tag": "tamam" }
+      ]
+    },
+    "f_escape": {
+      "role": "followup",
+      "texts": [
+        "Şu an neyden kaçıyorsun?",
+        "Kaçtığın şey ne?"
+      ],
+      "buttons": [
+        { "title": "Zor bir işten", "tag": "zor_is", "next": "f_identity_30" },
+        { "title": "Yargılanmaktan", "tag": "yargilanma", "next": "f_identity_30" },
+        { "title": "Sıkıntıdan", "tag": "sikinti", "next": "f_identity_30" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor", "next": "f_identity_30" }
+      ]
+    },
+    "f_filmed": {
+      "role": "followup",
+      "texts": [
+        "Son 2 saat filme çekilse, izleyen senin ne istediğini düşünürdü?",
+        "Sözlerini bırak. Son 2 saatteki davranışın ne istediğini söylüyor?"
+      ],
+      "buttons": [
+        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
+        { "title": "Güvenliği, rahatı", "tag": "guvenlik", "next": "f_identity_30" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor", "next": "f_identity_30" }
+      ]
+    },
+    "f_identity_30": {
+      "role": "followup",
+      "texts": [
+        "Kimliğin: '{identity}'. Bu kişi önümüzdeki 30 dakikada ne yapardı?",
+        "'{identity}' cümlesini yazan kişi önümüzdeki 30 dakikayı neye harcardı?"
+      ],
+      "buttons": [
+        { "title": "Onu yapıyorum", "tag": "yapiyorum" },
+        { "title": "Şimdi değil", "tag": "simdi_degil" }
+      ]
+    },
+    "f_pretend_step": {
+      "role": "followup",
+      "texts": [
+        "Ona bugün 15 dakika ver. Başlıyor musun?",
+        "Bildiğin halde ertelediğin o şey: bugün 15 dakikası senin. Başlıyor musun?"
+      ],
+      "buttons": [
+        { "title": "Başlıyorum", "tag": "yapiyorum" },
+        { "title": "Bugün değil", "tag": "erteleme", "next": "f_protect_what" }
+      ]
+    },
+    "f_protect_what": {
+      "role": "followup",
+      "texts": [
+        "Kendini koruyorsan: tam olarak neyden? Bu koruma sana neye mal oluyor?",
+        "Bu kaçış seni neyden koruyor?"
+      ],
+      "buttons": [
+        { "title": "Yargılanmaktan", "tag": "yargilanma" },
+        { "title": "Başarısızlıktan", "tag": "basarisizlik" },
+        { "title": "Belirsizlikten", "tag": "belirsizlik" },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    },
+    "f_smallest": {
+      "role": "followup",
+      "texts": [
+        "Olmak istediğin kişinin, yarın olabileceğin en küçük versiyonu ne? Tek cümle.",
+        "Yarın canlı geçecek tek bir saat için ne yapacaksın? Tek cümle."
+      ],
+      "buttons": [
+        { "title": "Yazıyorum", "tag": "plan_var", "input": true },
+        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+      ]
+    }
+  }
+}
