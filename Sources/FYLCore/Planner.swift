@@ -20,21 +20,26 @@ public func plan(now: Date, state: AppState, content: Content, calendar: Calenda
     let pool = content.nodes.filter { e in e.value.role == .interrupt && e.value.texts.contains { render($0, profile: p, questIndex: nil) != nil } }
         .keys.sorted()
 
+    // DatePicker saati de saklar: karşılaştırmadan önce gün başına indir.
+    let setupDay = state.setupDate.map { calendar.startOfDay(for: $0) }
+    let loopDay = state.loopStart.map { calendar.startOfDay(for: $0) }
+    var window = (0..<days).map { calendar.date(byAdding: .day, value: $0, to: today)! }
+    if let s = setupDay, s > window.last! { window.append(s) }   // pencere dışındaki kurulum günü de sessiz kalmasın
+
     var out: [PlannedItem] = []
-    for i in 0..<days {
-        let day = calendar.date(byAdding: .day, value: i, to: today)!
+    for day in window {
         let c = calendar.dateComponents([.year, .month, .day], from: day)
         let ymd = c.year! * 10000 + c.month! * 100 + c.day!
         let pre = "plan-\(ymd)"
 
-        if day == state.setupDate {
+        if day == setupDay {
             for (k, s) in content.setupSchedule.enumerated() {
                 guard let m = minutes(s.time), let t = text(s.node, nil) else { continue }
                 out.append(PlannedItem(id: "\(pre)-s\(k)", date: at(day, m), nodeId: s.node, text: t))
             }
             continue
         }
-        guard p != nil, let loop = state.loopStart, day >= loop else { continue }
+        guard p != nil, let loop = loopDay, day >= loop else { continue }
 
         if let t = text("morning", nil) { out.append(PlannedItem(id: "\(pre)-m", date: at(day, morning), nodeId: "morning", text: t)) }
 
