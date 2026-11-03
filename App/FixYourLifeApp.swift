@@ -1,9 +1,89 @@
 import SwiftUI
+import UserNotifications
 import FYLCore
+
+@MainActor final class AppModel: ObservableObject {
+    /// Bildirim aksiyonu uygulamayı arka planda başlattığında da (ekran çizilmeden) var olmalı.
+    static let shared = AppModel()
+
+    @Published var state: AppState
+    let content: Content
+    let notifier = Notifier()
+    private let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("state.json")
+
+    private init() {
+        guard let u = Bundle.main.url(forResource: "system", withExtension: "json"),
+              let data = try? Data(contentsOf: u), let c = try? Content.load(data)
+        else { fatalError("system.json yüklenemedi") }   // Task 3 testi gömülü içeriğin geçerliliğini garanti eder
+        content = c
+        state = Store.load(url)
+        notifier.model = self
+        notifier.registerCategories(c)
+        UNUserNotificationCenter.current().delegate = notifier
+    }
+
+    func save() {
+        do { try Store.save(state, to: url) } catch { print("state.json kaydedilemedi: \(error)") }
+    }
+
+    func replan() {
+        let now = Date()
+        state.events += harvestSent(previous: state.lastPlan, now: now)
+        let items = plan(now: now, state: state, content: content, calendar: .current)
+        notifier.apply(items)
+        state.lastPlan = items
+        save()
+    }
+
+    /// Bildirim butonu. Dokunma/kapatma ve tanınmayan aksiyonlar yok sayılır.
+    func receive(_ response: UNNotificationResponse) {
+        let info = response.notification.request.content.userInfo
+        let parts = response.actionIdentifier.split(separator: ":", maxSplits: 1).map(String.init)
+        guard parts.count == 2, let i = Int(parts[0]),
+              let itemId = info["itemId"] as? String, let nodeId = info["nodeId"] as? String,
+              let buttons = content.nodes[nodeId]?.buttons, buttons.indices.contains(i), buttons[i].tag == parts[1]
+        else { return }
+        let reply = Reply(itemId: itemId, nodeId: nodeId, buttonIndex: i,
+                          text: (response as? UNTextInputNotificationResponse)?.userText,
+                          questIndex: info["questIndex"] as? Int, depth: info["depth"] as? Int ?? 1)
+        var rng = SystemRandomNumberGenerator()
+        if let f = handle(reply, at: Date(), content: content, state: &state, rng: &rng) { notifier.send(f, itemId: itemId) }
+        replan()
+    }
+
+    // GEÇİCİ test kancası (Task 7 doğrulaması; Task 8'de kaldırılır). Durumu değiştirmez:
+    // örnek profille bir kesinti (takipli + metin girişli dal) 60 sn sonra gelir.
+    func sendTestInterrupt() {
+        let sample = Profile(identity: "Yaratıcı biri", antiVision: "Masa başında çürüyen", vision: "Kendi işini yapan",
+                             enemy: "Onay ihtiyacı", yearGoal: "İlk ürün", monthProject: "Uygulamayı bitir", whyStuck: "",
+                             quests: ["Oku", "Yaz"], constraints: ["Uyku"], monthStart: Date())
+        guard let text = content.nodes["i_alive"]?.texts.lazy.compactMap({ render($0, profile: sample, questIndex: nil) }).first
+        else { return }
+        notifier.send(FollowUp(nodeId: "i_alive", text: text, questIndex: nil, depth: 1), itemId: "test-\(Int(Date().timeIntervalSince1970))", after: 60)
+    }
+}
 
 @main
 struct FixYourLifeApp: App {
+    @StateObject private var model = AppModel.shared
+    @Environment(\.scenePhase) private var phase
+
+    init() { _ = AppModel.shared }   // delegate'i uygulama açılırken ata
+
     var body: some Scene {
-        WindowGroup { Text("FixYourLife") }
+        WindowGroup {
+            VStack(spacing: 24) {
+                Text("FixYourLife")
+                if model.state.profile == nil {
+                    Button("Test: örnek profil + 1 dk sonra kesinti") { model.sendTestInterrupt() }
+                }
+            }
+        }
+        .onChange(of: phase) { _, p in
+            guard p == .active else { return }
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+            model.replan()
+        }
     }
 }
