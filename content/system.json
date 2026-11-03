@@ -76,7 +76,7 @@
     "day_rating": {
       "role": "system",
       "texts": [
-        "Bugün en canlı ne zamandın, en ölü ne zaman? Toplamda gün hangisiydi?",
+        "Bugün ne zaman en canlıydın, ne zaman en ölü? Toplamda gün hangisiydi?",
         "Bugünün geneline bak: canlı mı geçti, otopilotta mı?",
         "Tek kelimeyle bugün: canlı mı, ölü mü?"
       ],
@@ -89,7 +89,7 @@
     "reopen": {
       "role": "system",
       "texts": [
-        "Planlı sorular bitiyor. Açmazsan yarından sonra sessizlik var; otopilotun en sevdiği şey.",
+        "Planlı sorular bitmek üzere. Uygulamayı aç ki devam etsin.",
         "Birkaç gündür uygulamayı açmadın. Açmazsan sorular duracak."
       ],
       "buttons": [
@@ -117,7 +117,7 @@
     },
     "setup_deep_identity": {
       "role": "setup",
-      "texts": ["Bu sabah yazdığın kimlik cümlesini düşün (\"Ben … tipte biriyim\"). İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?"],
+      "texts": ["Bu sabah yazdığın, vazgeçmen gereken kimliği düşün (\"Ben … tipte biriyim\"). İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?"],
       "buttons": [
         { "title": "Düşündüm", "tag": "dusundum" },
         { "title": "Görünmeye çalışıyorum", "tag": "gorunme_ihtiyaci" },
@@ -209,7 +209,7 @@
       "texts": [
         "Biri son iki saatini filme çekseydi, hayattan ne istediğin sonucuna varırdı?",
         "Son iki saatin bir belgesel olsa, izleyen senin ne istediğini söylerdi?",
-        "Sözlerini unut. Son iki saatteki hareketlerin hayattan ne istediğini söylüyor?"
+        "Sözlerini unut. Son iki saatteki hareketlerin sana hayattan ne istediğini söylüyor?"
       ],
       "buttons": [
         { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
@@ -222,7 +222,7 @@
       "texts": [
         "Nefret ettiğin hayata mı, istediğin hayata mı ilerliyorsun?",
         "Şu an yaptığın şey seni hangi hayata taşıyor: nefret ettiğine mi, istediğine mi?",
-        "Son birkaç saat bir yön çizdiyse: nefret ettiğin hayata mı, istediğin hayata mı?"
+        "Son birkaç saat seni nereye götürüyor: nefret ettiğin hayata mı, istediğin hayata mı?"
       ],
       "buttons": [
         { "title": "İstediğim hayata", "tag": "istedigim_hayat", "next": "f_direction_ok" },
@@ -245,9 +245,9 @@
     "i_protect": {
       "role": "interrupt",
       "texts": [
-        "Bugün neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? İpucu: çoğunu.",
-        "Bugün yaptıklarından hangisi istekti, hangisi \"ben böyle biriyim\" savunması?",
-        "Bugünkü kararlarının kaçı olmak istediğin kişiden değil, eski kimliğinden geldi?"
+        "Bugün şu ana kadar neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? İpucu: çoğunu.",
+        "Bugün şu ana kadar yaptıklarından hangisi istekti, hangisi \"ben böyle biriyim\" savunması?",
+        "Bugün şu ana kadarki kararlarının kaçı olmak istediğin kişiden değil, eski kimliğinden geldi?"
       ],
       "buttons": [
         { "title": "Çoğu kimlik korumasıydı", "tag": "kimlik_korumasi", "next": "f_protect_what" },
@@ -258,9 +258,9 @@
     "i_alive": {
       "role": "interrupt",
       "texts": [
-        "Bugün en canlı ne zaman hissettin? En ölü ne zaman?",
-        "Bugünün hangi anında gerçekten oradaydın, hangisinde sadece vakit öldürdün?",
-        "Bugün seni ne canlandırdı, ne söndürdü?"
+        "Bugün şu ana kadar en canlı ne zaman hissettin? En ölü ne zaman?",
+        "Bugün şu ana kadar hangi anda gerçekten oradaydın, hangisinde sadece vakit öldürdün?",
+        "Bugün şu ana kadar seni ne canlandırdı, ne söndürdü?"
       ],
       "buttons": [
         { "title": "Canlı anlar vardı", "tag": "canli_an" },
@@ -272,9 +272,9 @@
     "i_deep_identity": {
       "role": "interrupt",
       "texts": [
-        "Kimliğin: '{identity}'. İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?",
-        "'{identity}' — bu kişi olmak mı istiyorsun, öyle görünmek mi? Görünme ihtiyacını bıraksan ne değişirdi?",
-        "Kimse seni '{identity}' diye görmeseydi, bugün yaptıklarından hangisini yine yapardın?"
+        "Kurulum sabahı vazgeçmen gereken kimliği yazdın. İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?",
+        "Vazgeçmen gereken o eski kimlik: insanların seni hâlâ öyle görmesine neden ihtiyaç duyuyorsun? Bu ihtiyacı bıraksan ne değişirdi?",
+        "Kimse seni eski kimliğinle görmeseydi, bugün şu ana kadar yaptıklarından hangisini yine yapardın?"
       ],
       "buttons": [
         { "title": "Düşündüm", "tag": "dusundum" },
@@ -338,8 +338,8 @@
     "i_t_enemy": {
       "role": "interrupt",
       "texts": [
-        "Düşmanın: '{enemy}'. Bugün kazandı mı?",
-        "Asıl düşmanın: '{enemy}'. Bugün bir kararını senin yerine verdi mi?",
+        "Düşmanın: '{enemy}'. Bugün şu ana kadar kazandı mı?",
+        "Asıl düşmanın: '{enemy}'. Bugün şu ana kadar bir kararını senin yerine verdi mi?",
         "Düşmanın: '{enemy}'. Son birkaç saatte direksiyonda o muydu?"
       ],
       "buttons": [
@@ -351,9 +351,9 @@
     "i_t_vision": {
       "role": "interrupt",
       "texts": [
-        "Vizyonun: '{vision}'. Bugün ona doğru somut bir adım attın mı?",
+        "Vizyonun: '{vision}'. Bugün şu ana kadar ona doğru somut bir adım attın mı?",
         "Kurduğun hayat: '{vision}'. Son 3 saatte onun için bir şey yaptın mı?",
-        "Vizyonun: '{vision}'. Bugünkü saatlerin oraya mı aktı?"
+        "Vizyonun: '{vision}'. Bugün şu ana kadarki saatlerin oraya mı aktı?"
       ],
       "buttons": [
         { "title": "Evet", "tag": "vizyon_adim" },
@@ -363,9 +363,9 @@
     "i_t_boss": {
       "role": "interrupt",
       "texts": [
-        "Bu ayın boss'u: '{monthProject}'. Bugün ona bir darbe indirdin mi?",
-        "Boss savaşı: '{monthProject}'. Bugün ilerleme var mı?",
-        "1 aylık projen: '{monthProject}'. Bugün ona gerçek bir saat verdin mi?"
+        "Bu ayın boss'u: '{monthProject}'. Bugün şu ana kadar ona bir darbe indirdin mi?",
+        "Boss savaşı: '{monthProject}'. Bugün şu ana kadar ilerleme var mı?",
+        "1 aylık projen: '{monthProject}'. Bugün şu ana kadar ona gerçek bir saat verdin mi?"
       ],
       "buttons": [
         { "title": "Evet", "tag": "boss_ilerleme" },
@@ -376,8 +376,8 @@
     "f_direction_ok": {
       "role": "followup",
       "texts": [
-        "Not edildi. Söz değil hareket sayılır; akşam görevler gösterecek.",
-        "Tamam. Kanıtı akşam kapanışında görürüz."
+        "Not edildi. Söz değil hareket sayılır; görevler gösterecek.",
+        "Tamam. Kanıtı görevlerde görürüz."
       ],
       "buttons": [
         { "title": "Tamam", "tag": "tamam" }
