@@ -39,6 +39,14 @@ final class PlannerTests: XCTestCase {
         let p = planned(now: d("2026-11-10 14:00"))
         XCTAssertEqual(p.map(\.nodeId), ["synthesis"]); XCTAssertEqual(p.first?.date, d("2026-11-10 22:00"))
     }
+    func testSetupDateWithTimeOfDayStillMatches() {   // DatePicker saati de saklar
+        state.profile = nil; state.loopStart = nil; state.setupDate = d("2026-11-11 14:37")
+        XCTAssertEqual(planned().map(\.nodeId), ["s1", "synthesis"])
+    }
+    func testSetupDayBeyondWindowStillPlanned() {
+        state.profile = nil; state.loopStart = nil; state.setupDate = d("2026-11-25 00:00")
+        XCTAssertEqual(planned().map(\.date), [d("2026-11-25 11:00"), d("2026-11-25 22:00")])
+    }
     func testSkipsInterruptWithEmptyVar() { state.profile!.enemy = ""; XCTAssertFalse(planned().contains { $0.nodeId == "i3" }) }
     func testChainUntilDelaysInterrupts() {
         let first = items(on: "2026-11-10").first { $0.id.hasSuffix("-i0") }!
