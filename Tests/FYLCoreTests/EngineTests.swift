@@ -27,7 +27,14 @@ final class EngineTests: XCTestCase {
     func testDepthLimit() { XCTAssertNil(h("f1", 0, depth: 3)) }
     func testPerQuestWalksQuestsThenRating() {
         XCTAssertEqual(h("quest_check", 0, q: 0), FollowUp(nodeId: "quest_check", text: "Görev: Yaz", questIndex: 1, depth: 1))
-        XCTAssertEqual(h("quest_check", 2, q: 1)?.nodeId, "day_rating")
+        let rating = h("quest_check", 2, q: 1)
+        XCTAssertEqual(rating?.nodeId, "day_rating"); XCTAssertEqual(rating?.depth, 2)
+    }
+    func testQuestAnsweredNextMorningCountsForPlannedDay() {   // kilit ekranından sabah cevaplanan 23:30 sorusu
+        state.lastPlan = [PlannedItem(id: "it", date: d("2026-11-10 23:30"), nodeId: "quest_check", text: "", questIndex: 0)]
+        _ = h("quest_check", 0, q: 0, at: d("2026-11-11 08:00"))
+        XCTAssertEqual(questStatus(state, on: d("2026-11-10 00:00"), calendar: cal), ["yaptim", nil])
+        XCTAssertEqual(questStatus(state, on: d("2026-11-11 00:00"), calendar: cal), [nil, nil])
     }
     func testQuestStatusAcrossMidnight() {
         _ = h("quest_check", 0, q: 0, at: d("2026-11-10 23:40"))
