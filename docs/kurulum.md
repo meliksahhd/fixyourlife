@@ -32,3 +32,7 @@ Sen 2. adımdaki Apple Kimliği numarasını ilettikten sonra `codemagic.yaml` i
 İlk derleme gelince bunları dene, aksayanı bana yaz:
 
 - [ ] Uygulama açılıyor, "FixYourLife" yazısı görünüyor.
+- [ ] Bildirim izni istemi çıkıyor, "İzin Ver" diyorsun.
+- [ ] "Test: örnek profil + 1 dk sonra kesinti" butonuna bas, uygulamayı kapat. 1 dakika içinde bildirim geliyor. Kilit ekranında "Sana bir sorum var" yazıyor (Ayarlar → Bildirimler → Önizlemeleri Göster: "Kilit Açıkken" iken).
+- [ ] Bildirime uzun bas, butonlar görünüyor. "Ölü" anlamındaki butona bas: uygulama açılmadan birkaç saniye içinde takip sorusu geliyor.
+- [ ] Takip sorusundaki "Yazıyorum" butonunda klavye açılıyor, yazıp gönderebiliyorsun.
