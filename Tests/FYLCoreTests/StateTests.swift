@@ -19,6 +19,12 @@ final class StateTests: XCTestCase {
         let siblings = try FileManager.default.contentsOfDirectory(atPath: u.deletingLastPathComponent().path)
         XCTAssertTrue(siblings.contains { $0.hasPrefix("state-corrupt-") })
     }
+    func testUnreadableFileIsNotTreatedAsMissing() throws {   // ör. yeniden başlatma sonrası kilit açılmadan: dosya var, okunamıyor
+        let u = tmpURL(); try FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
+        XCTAssertNil(Store.load(u))
+        var isDir: ObjCBool = false
+        XCTAssertTrue(FileManager.default.fileExists(atPath: u.path, isDirectory: &isDir) && isDir.boolValue)
+    }
     func testQuestStatusLatestAnsweredPerQuestPerDay() {
         var s = AppState(); s.profile = profile
         let n = profile.quests.count
