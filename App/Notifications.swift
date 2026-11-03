@@ -26,21 +26,20 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// Planlı bildirimlerin tamamını yenisiyle değiştirir (takip bildirimlerine dokunmaz).
-    func apply(_ items: [PlannedItem]) {
-        center.getPendingNotificationRequests { [center] pending in
-            center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier).filter { $0.hasPrefix("plan-") })
-            for it in items {
-                let c = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: it.date)
-                center.add(UNNotificationRequest(
-                    identifier: it.id,
-                    content: Self.body(it.text, node: it.nodeId, itemId: it.id, questIndex: it.questIndex, depth: 1),
-                    trigger: UNCalendarNotificationTrigger(dateMatching: c, repeats: false)))
-            }
+    func apply(_ items: [PlannedItem]) async {
+        let pending = await center.pendingNotificationRequests()
+        center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier).filter { $0.hasPrefix("plan-") })
+        for it in items {
+            let c = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: it.date)
+            try? await center.add(UNNotificationRequest(
+                identifier: it.id,
+                content: Self.body(it.text, node: it.nodeId, itemId: it.id, questIndex: it.questIndex, depth: 1),
+                trigger: UNCalendarNotificationTrigger(dateMatching: c, repeats: false)))
         }
     }
 
-    func send(_ f: FollowUp, itemId: String, after seconds: TimeInterval = 3) {
-        center.add(UNNotificationRequest(
+    func send(_ f: FollowUp, itemId: String, after seconds: TimeInterval = 3) async {
+        try? await center.add(UNNotificationRequest(
             identifier: "fu-\(UUID().uuidString)",
             content: Self.body(f.text, node: f.nodeId, itemId: itemId, questIndex: f.questIndex, depth: f.depth),
             trigger: UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)))
@@ -55,16 +54,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         return c
     }
 
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
-                                withCompletionHandler completionHandler: @escaping () -> Void) {
-        Task { @MainActor in
-            model?.receive(response)
-            completionHandler()
-        }
+    // async sürümler: iOS, fonksiyon dönünce (yani bildirimler kurulduktan sonra) tamamlandı sayar.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        await model?.receive(response)
     }
 
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
-                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound])
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
     }
 }
