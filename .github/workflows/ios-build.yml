@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
