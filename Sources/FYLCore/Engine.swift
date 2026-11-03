@@ -19,7 +19,12 @@ public struct FollowUp: Equatable {
 public func handle(_ reply: Reply, at now: Date, content: Content, state: inout AppState, rng: inout some RandomNumberGenerator) -> FollowUp? {
     guard let node = content.nodes[reply.nodeId], node.buttons.indices.contains(reply.buttonIndex) else { return nil }
     let button = node.buttons[reply.buttonIndex]
-    state.events.append(Event(date: now, kind: .answered, nodeId: reply.nodeId, tag: button.tag, text: reply.text,
+    // Görev cevabı, sorulduğu güne sayılır (23:30 sorusu ertesi sabah kilit ekranından cevaplanabilir).
+    // ponytail: cevap saati yerine planlanan saat yazılır; ayna gerçek cevap saatini isterse Event'e ayrı alan ekle.
+    let root = state.lastPlan.first { $0.id == reply.itemId }?.date
+        ?? state.events.last { $0.kind == .sent && $0.itemId == reply.itemId }?.date
+    let date = node.perQuest == true ? min(root ?? now, now) : now
+    state.events.append(Event(date: date, kind: .answered, nodeId: reply.nodeId, tag: button.tag, text: reply.text,
                               questIndex: reply.questIndex, itemId: reply.itemId))
 
     let target: String?, q: Int?, depth: Int
