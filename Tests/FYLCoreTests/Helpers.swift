@@ -13,3 +13,9 @@ func d(_ s: String) -> Date {
     f.dateFormat = "yyyy-MM-dd HH:mm"
     return f.date(from: s)!
 }
+
+func tmpURL() -> URL {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    return dir.appendingPathComponent("state.json")
+}
