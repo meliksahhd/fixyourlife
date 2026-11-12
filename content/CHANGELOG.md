@@ -1,5 +1,16 @@
 # İçerik değişiklik notları
 
+## v2 — 2026-11-12
+
+Görsel kimlik (tasarım: `docs/superpowers/specs/2026-11-12-gorsel-kimlik-design.md`).
+
+**Eklenen:**
+- Her düğüme `gist` (bildirim alt satırı, soru biçiminde, en çok 40 karakter) ve 2–3 İngilizce `imageQueries` (Unsplash sorguları; insan yüzü gerektirmeyen, mesajın temasını hissettiren sahneler).
+- Sabah protokolünün üç grubuna `imageQueries` (kurulum günü soru ekranının fotoğrafı).
+- Butonlara `icon` (SF Symbols): cevabın anlamına göre.
+
+**Neden:** Bildirim her gün görülen vitrin; fotoğraf o anki mesajı hissettirsin, yazı katmanı olmadan.
+
 ## v1 — 2026-11-03
 
 İlk içerik. Kaynak: Dan Koe, "How to fix your entire life in 1 day" (2026-01-12) — `content/sources/2026-01-12-dan-koe-how-to-fix-your-entire-life-in-1-day.md`.

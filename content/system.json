@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "placeholder": "Sana bir sorum var",
   "reopenText": "Planlı sorular bitiyor. Aç ki yarın da gelsin.",
   "protocolMorning": [
@@ -10,6 +10,11 @@
         "Sürekli şikâyet edip hiç değiştirmediğin şey ne? Geçen yıl en sık dile getirdiğin üç şikâyeti yaz.",
         "Her şikâyet için: Sözlerini değil davranışını izleyen biri, aslında ne istediğin sonucuna varırdı?",
         "Şu anki hayatınla ilgili hangi gerçeği, derinden saygı duyduğun birine itiraf etmek dayanılmaz olurdu?"
+      ],
+      "imageQueries": [
+        "fog grey morning",
+        "rain on window",
+        "empty room"
       ]
     },
     {
@@ -22,6 +27,11 @@
         "Gerçekten değişmek için hangi kimlikten vazgeçmen gerekirdi? (\"Ben … tipte biriyim\") Artık o kişi olmamanın sosyal bedeli ne olurdu?",
         "Değişmemenin en utanç verici sebebi ne? Seni makul değil; zayıf, korkak ya da tembel gösteren sebep.",
         "Şu anki davranışın bir tür kendini korumaysa, tam olarak neyi koruyorsun? Bu koruma sana neye mal oluyor?"
+      ],
+      "imageQueries": [
+        "abandoned building",
+        "grey office cubicle",
+        "wilted flower"
       ]
     },
     {
@@ -30,20 +40,55 @@
         "Bir dakikalığına gerçekçiliği unut. Parmaklarını şıklatıp üç yıl sonra bambaşka bir hayat yaşayabilseydin, gerçekçi olanı değil, gerçekten istediğini, sıradan bir Salı nasıl görünürdü? Beş yıllık Salı kadar ayrıntılı yaz.",
         "O hayatın zorlama değil doğal gelmesi için kendin hakkında neye inanman gerekirdi? Kimlik cümleni yaz: \"Ben … tipte biriyim.\"",
         "Zaten o kişi olsaydın bu hafta yapacağın tek şey ne?"
+      ],
+      "imageQueries": [
+        "mountain summit sunrise",
+        "open road horizon",
+        "bright studio"
       ]
     }
   ],
   "setupSchedule": [
-    { "time": "11:00", "node": "setup_avoid" },
-    { "time": "12:30", "node": "setup_deep_identity" },
-    { "time": "13:30", "node": "setup_filmed" },
-    { "time": "15:15", "node": "setup_direction" },
-    { "time": "16:15", "node": "setup_deep_safety" },
-    { "time": "17:00", "node": "setup_pretend" },
-    { "time": "18:30", "node": "setup_deep_smallest" },
-    { "time": "19:30", "node": "setup_protect" },
-    { "time": "21:00", "node": "setup_alive" },
-    { "time": "22:00", "node": "synthesis" }
+    {
+      "time": "11:00",
+      "node": "setup_avoid"
+    },
+    {
+      "time": "12:30",
+      "node": "setup_deep_identity"
+    },
+    {
+      "time": "13:30",
+      "node": "setup_filmed"
+    },
+    {
+      "time": "15:15",
+      "node": "setup_direction"
+    },
+    {
+      "time": "16:15",
+      "node": "setup_deep_safety"
+    },
+    {
+      "time": "17:00",
+      "node": "setup_pretend"
+    },
+    {
+      "time": "18:30",
+      "node": "setup_deep_smallest"
+    },
+    {
+      "time": "19:30",
+      "node": "setup_protect"
+    },
+    {
+      "time": "21:00",
+      "node": "setup_alive"
+    },
+    {
+      "time": "22:00",
+      "node": "synthesis"
+    }
   ],
   "nodes": {
     "morning": {
@@ -54,8 +99,23 @@
         "'{identity}' — bugün bunu kanıtlayacak görevler: {todayQuests}."
       ],
       "buttons": [
-        { "title": "Bu kişiyim, başlıyorum", "tag": "basliyorum" },
-        { "title": "Görevleri değiştir", "tag": "gorev_degistir", "foreground": true }
+        {
+          "title": "Bu kişiyim, başlıyorum",
+          "tag": "basliyorum",
+          "icon": "play.circle"
+        },
+        {
+          "title": "Görevleri değiştir",
+          "tag": "gorev_degistir",
+          "foreground": true,
+          "icon": "pencil"
+        }
+      ],
+      "gist": "Bugün kim olacaksın?",
+      "imageQueries": [
+        "mountain summit sunrise",
+        "dawn road",
+        "first light window"
       ]
     },
     "quest_check": {
@@ -68,9 +128,27 @@
         "{quest} — söz değil, hareket sayılır. Yapıldı mı?"
       ],
       "buttons": [
-        { "title": "Yaptım", "tag": "yaptim" },
-        { "title": "Kısmen", "tag": "kismen" },
-        { "title": "Yapmadım", "tag": "yapmadim" }
+        {
+          "title": "Yaptım",
+          "tag": "yaptim",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Kısmen",
+          "tag": "kismen",
+          "icon": "circle.lefthalf.filled"
+        },
+        {
+          "title": "Yapmadım",
+          "tag": "yapmadim",
+          "icon": "xmark.circle"
+        }
+      ],
+      "gist": "Yaptın mı?",
+      "imageQueries": [
+        "athlete training",
+        "focused work desk",
+        "finish line"
       ]
     },
     "day_rating": {
@@ -81,9 +159,27 @@
         "Tek kelimeyle bugün: canlı mı, ölü mü?"
       ],
       "buttons": [
-        { "title": "Canlı", "tag": "canli" },
-        { "title": "Karışık", "tag": "karisik" },
-        { "title": "Ölü", "tag": "olu" }
+        {
+          "title": "Canlı",
+          "tag": "canli",
+          "icon": "sun.max"
+        },
+        {
+          "title": "Karışık",
+          "tag": "karisik",
+          "icon": "circle.lefthalf.filled"
+        },
+        {
+          "title": "Ölü",
+          "tag": "olu",
+          "icon": "moon"
+        }
+      ],
+      "gist": "Canlı mıydın, ölü müydün?",
+      "imageQueries": [
+        "sunset over sea",
+        "city lights dusk",
+        "candle flame dark"
       ]
     },
     "reopen": {
@@ -93,7 +189,12 @@
         "Birkaç gündür uygulamayı açmadın. Açmazsan sorular duracak."
       ],
       "buttons": [
-        { "title": "Aç", "tag": "ac", "foreground": true }
+        {
+          "title": "Aç",
+          "tag": "ac",
+          "foreground": true,
+          "icon": "arrow.right"
+        }
       ]
     },
     "synthesis": {
@@ -102,95 +203,296 @@
         "Gün bitti. Şimdi sentez: neden takıldın, asıl düşman ne, reddettiğin hayat ve kurduğun hayat tek cümlede, 1 yıl, 1 ay ve yarının görevleri. Kâğıt ve 20 dakika."
       ],
       "buttons": [
-        { "title": "Sentezi aç", "tag": "sentez_ac", "foreground": true }
+        {
+          "title": "Sentezi aç",
+          "tag": "sentez_ac",
+          "foreground": true,
+          "icon": "arrow.right"
+        }
+      ],
+      "gist": "Gün bitti. Şimdi sentez.",
+      "imageQueries": [
+        "desk lamp night",
+        "quiet city night",
+        "notebook by lamplight"
       ]
     },
-
     "setup_avoid": {
       "role": "setup",
-      "texts": ["Şu an yaptığın şeyle neyden kaçıyorsun?"],
+      "texts": [
+        "Şu an yaptığın şeyle neyden kaçıyorsun?"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Kaçıyordum", "tag": "kaciyordum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Kaçıyordum",
+          "tag": "kaciyordum",
+          "icon": "arrow.uturn.left"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Neyden kaçıyorsun?",
+      "imageQueries": [
+        "empty corridor",
+        "closed door",
+        "running away"
       ]
     },
     "setup_deep_identity": {
       "role": "setup",
-      "texts": ["Bu sabah yazdığın, vazgeçmen gereken kimliği düşün (\"Ben … tipte biriyim\"). İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?"],
+      "texts": [
+        "Bu sabah yazdığın, vazgeçmen gereken kimliği düşün (\"Ben … tipte biriyim\"). İnsanların seni öyle görmesine ihtiyaç duymayı bıraksan ne değişirdi?"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Görünmeye çalışıyorum", "tag": "gorunme_ihtiyaci" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Görünmeye çalışıyorum",
+          "tag": "gorunme_ihtiyaci",
+          "icon": "eye"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Hangi kimliği bırakmalısın?",
+      "imageQueries": [
+        "mask on table",
+        "shed snake skin",
+        "old coat on hook"
       ]
     },
     "setup_filmed": {
       "role": "setup",
-      "texts": ["Biri son iki saatini filme çekseydi, hayattan ne istediğin sonucuna varırdı?"],
+      "texts": [
+        "Biri son iki saatini filme çekseydi, hayattan ne istediğin sonucuna varırdı?"
+      ],
       "buttons": [
-        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
-        { "title": "Güvenliği, rahatı", "tag": "guvenlik" },
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "İstediğim hayatı",
+          "tag": "istedigim_hayat",
+          "icon": "arrow.up.right"
+        },
+        {
+          "title": "Güvenliği, rahatı",
+          "tag": "guvenlik",
+          "icon": "shield"
+        },
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Kamera ne görürdü?",
+      "imageQueries": [
+        "film camera",
+        "cinema dark",
+        "observer silhouette"
       ]
     },
     "setup_direction": {
       "role": "setup",
-      "texts": ["Nefret ettiğin hayata mı ilerliyorsun, istediğin hayata mı?"],
+      "texts": [
+        "Nefret ettiğin hayata mı ilerliyorsun, istediğin hayata mı?"
+      ],
       "buttons": [
-        { "title": "İstediğim hayata", "tag": "istedigim_hayat" },
-        { "title": "Nefret ettiğime", "tag": "nefret_ettigim_hayat" },
-        { "title": "Emin değilim", "tag": "emin_degilim" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "İstediğim hayata",
+          "tag": "istedigim_hayat",
+          "icon": "arrow.up.right"
+        },
+        {
+          "title": "Nefret ettiğime",
+          "tag": "nefret_ettigim_hayat",
+          "icon": "arrow.down.right"
+        },
+        {
+          "title": "Emin değilim",
+          "tag": "emin_degilim",
+          "icon": "questionmark.circle"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Hangi hayata ilerliyorsun?",
+      "imageQueries": [
+        "fork in the road",
+        "compass in hand",
+        "long road horizon"
       ]
     },
     "setup_deep_safety": {
       "role": "setup",
-      "texts": ["Hayatının neresinde canlılığı güvenlikle takas ediyorsun?"],
+      "texts": [
+        "Hayatının neresinde canlılığı güvenlikle takas ediyorsun?"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Bir yer buldum", "tag": "takas_var" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Bir yer buldum",
+          "tag": "takas_var",
+          "icon": "mappin"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Canlılığı neyle takas ettin?",
+      "imageQueries": [
+        "cage open door",
+        "safe harbor boats",
+        "fence and open field"
       ]
     },
     "setup_pretend": {
       "role": "setup",
-      "texts": ["Önemli değilmiş gibi davrandığın en önemli şey ne?"],
+      "texts": [
+        "Önemli değilmiş gibi davrandığın en önemli şey ne?"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Ne olduğunu biliyorum", "tag": "farkinda" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Ne olduğunu biliyorum",
+          "tag": "farkinda",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Neyi önemsiz sayıyorsun?",
+      "imageQueries": [
+        "dust covered piano",
+        "unopened letter",
+        "forgotten guitar"
       ]
     },
     "setup_deep_smallest": {
       "role": "setup",
-      "texts": ["Olmak istediğin kişinin, yarın olabileceğin en küçük versiyonu ne?"],
+      "texts": [
+        "Olmak istediğin kişinin, yarın olabileceğin en küçük versiyonu ne?"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Belli, yarın yapacağım", "tag": "plan_var" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Belli, yarın yapacağım",
+          "tag": "plan_var",
+          "icon": "calendar"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Yarınki en küçük adım ne?",
+      "imageQueries": [
+        "single step stairs",
+        "seedling soil",
+        "first brick"
       ]
     },
     "setup_protect": {
       "role": "setup",
-      "texts": ["Bugün neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? (İpucu: yaptığın çoğu şeyi.)"],
+      "texts": [
+        "Bugün neyi gerçekten istediğin için değil, kimliğini korumak için yaptın? (İpucu: yaptığın çoğu şeyi.)"
+      ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Çoğu kimlik korumasıydı", "tag": "kimlik_korumasi" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Çoğu kimlik korumasıydı",
+          "tag": "kimlik_korumasi",
+          "icon": "shield"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Kimliği mi koruyorsun?",
+      "imageQueries": [
+        "armor knight",
+        "castle wall",
+        "shield metal"
       ]
     },
     "setup_alive": {
       "role": "setup",
-      "texts": ["Bugün en canlı ne zaman hissettin? En ölü ne zaman?"],
+      "texts": [
+        "Bugün en canlı ne zaman hissettin? En ölü ne zaman?"
+      ],
       "buttons": [
-        { "title": "Canlı anlar vardı", "tag": "canli_an" },
-        { "title": "Çoğu ölüydü", "tag": "olu_gun" },
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Canlı anlar vardı",
+          "tag": "canli_an",
+          "icon": "sun.max"
+        },
+        {
+          "title": "Çoğu ölüydü",
+          "tag": "olu_gun",
+          "icon": "moon"
+        },
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Canlı mıydın, ölü müydün?",
+      "imageQueries": [
+        "morning light run",
+        "ocean wave",
+        "sunlight window"
       ]
     },
-
     "i_avoid": {
       "role": "interrupt",
       "texts": [
@@ -199,9 +501,28 @@
         "Şu anki meşguliyetin seni hangi zor şeyden uzak tutuyor?"
       ],
       "buttons": [
-        { "title": "Bir şeyden kaçıyorum", "tag": "kaciyordum", "next": "f_escape" },
-        { "title": "Kaçmıyorum", "tag": "kacmiyordum" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Bir şeyden kaçıyorum",
+          "tag": "kaciyordum",
+          "next": "f_escape",
+          "icon": "arrow.uturn.left"
+        },
+        {
+          "title": "Kaçmıyorum",
+          "tag": "kacmiyordum",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Neyden kaçıyorsun?",
+      "imageQueries": [
+        "empty corridor",
+        "closed door",
+        "running away"
       ]
     },
     "i_filmed": {
@@ -212,9 +533,28 @@
         "Sözlerini unut. Son iki saatteki hareketlerin sana hayattan ne istediğini söylüyor?"
       ],
       "buttons": [
-        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
-        { "title": "Güvenliği, rahatı", "tag": "guvenlik", "next": "f_escape" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "İstediğim hayatı",
+          "tag": "istedigim_hayat",
+          "icon": "arrow.up.right"
+        },
+        {
+          "title": "Güvenliği, rahatı",
+          "tag": "guvenlik",
+          "next": "f_escape",
+          "icon": "shield"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Kamera ne görürdü?",
+      "imageQueries": [
+        "film camera",
+        "cinema dark",
+        "observer silhouette"
       ]
     },
     "i_direction": {
@@ -225,9 +565,30 @@
         "Son birkaç saat seni nereye götürüyor: nefret ettiğin hayata mı, istediğin hayata mı?"
       ],
       "buttons": [
-        { "title": "İstediğim hayata", "tag": "istedigim_hayat", "next": "f_direction_ok" },
-        { "title": "Nefret ettiğime", "tag": "nefret_ettigim_hayat", "next": "f_escape" },
-        { "title": "Emin değilim", "tag": "emin_degilim", "next": "f_filmed" }
+        {
+          "title": "İstediğim hayata",
+          "tag": "istedigim_hayat",
+          "next": "f_direction_ok",
+          "icon": "arrow.up.right"
+        },
+        {
+          "title": "Nefret ettiğime",
+          "tag": "nefret_ettigim_hayat",
+          "next": "f_escape",
+          "icon": "arrow.down.right"
+        },
+        {
+          "title": "Emin değilim",
+          "tag": "emin_degilim",
+          "next": "f_filmed",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Hangi hayata ilerliyorsun?",
+      "imageQueries": [
+        "fork in the road",
+        "compass in hand",
+        "long road horizon"
       ]
     },
     "i_pretend": {
@@ -238,8 +599,23 @@
         "Görmezden geldiğin ama her şeyi değiştirecek olan şey ne?"
       ],
       "buttons": [
-        { "title": "Ne olduğunu biliyorum", "tag": "farkinda", "next": "f_pretend_step" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Ne olduğunu biliyorum",
+          "tag": "farkinda",
+          "next": "f_pretend_step",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Neyi önemsiz sayıyorsun?",
+      "imageQueries": [
+        "dust covered piano",
+        "unopened letter",
+        "forgotten guitar"
       ]
     },
     "i_protect": {
@@ -250,9 +626,28 @@
         "Bugün şu ana kadarki kararlarının kaçı olmak istediğin kişiden değil, eski kimliğinden geldi?"
       ],
       "buttons": [
-        { "title": "Çoğu kimlik korumasıydı", "tag": "kimlik_korumasi", "next": "f_protect_what" },
-        { "title": "Çoğu gerçek istekti", "tag": "gercek_istek" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Çoğu kimlik korumasıydı",
+          "tag": "kimlik_korumasi",
+          "next": "f_protect_what",
+          "icon": "shield"
+        },
+        {
+          "title": "Çoğu gerçek istekti",
+          "tag": "gercek_istek",
+          "icon": "heart"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Kimliği mi koruyorsun?",
+      "imageQueries": [
+        "armor knight",
+        "castle wall",
+        "shield metal"
       ]
     },
     "i_alive": {
@@ -263,12 +658,30 @@
         "Bugün şu ana kadar seni ne canlandırdı, ne söndürdü?"
       ],
       "buttons": [
-        { "title": "Canlı anlar vardı", "tag": "canli_an" },
-        { "title": "Çoğu ölüydü", "tag": "olu_gun", "next": "f_smallest" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Canlı anlar vardı",
+          "tag": "canli_an",
+          "icon": "sun.max"
+        },
+        {
+          "title": "Çoğu ölüydü",
+          "tag": "olu_gun",
+          "next": "f_smallest",
+          "icon": "moon"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Canlı mıydın, ölü müydün?",
+      "imageQueries": [
+        "morning light run",
+        "ocean wave",
+        "sunlight window"
       ]
     },
-
     "i_deep_identity": {
       "role": "interrupt",
       "texts": [
@@ -277,9 +690,27 @@
         "Kimse seni eski kimliğinle görmeseydi, bugün şu ana kadar yaptıklarından hangisini yine yapardın?"
       ],
       "buttons": [
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Görünmeye çalışıyorum", "tag": "gorunme_ihtiyaci" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Görünmeye çalışıyorum",
+          "tag": "gorunme_ihtiyaci",
+          "icon": "eye"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Hangi kimliği bırakmalısın?",
+      "imageQueries": [
+        "mask on table",
+        "shed snake skin",
+        "old coat on hook"
       ]
     },
     "i_deep_safety": {
@@ -290,9 +721,27 @@
         "Güvenli olduğu için tuttuğun ama seni söndüren şey ne?"
       ],
       "buttons": [
-        { "title": "Bir yer buldum", "tag": "takas_var" },
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Bir yer buldum",
+          "tag": "takas_var",
+          "icon": "mappin"
+        },
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Canlılığı neyle takas ettin?",
+      "imageQueries": [
+        "cage open door",
+        "safe harbor boats",
+        "fence and open field"
       ]
     },
     "i_deep_smallest": {
@@ -303,12 +752,29 @@
         "Yarın, olmak istediğin kişinin küçük ama gerçek bir versiyonu olmak için tek bir şey: ne?"
       ],
       "buttons": [
-        { "title": "Belli, yarın yapacağım", "tag": "plan_var" },
-        { "title": "Düşündüm", "tag": "dusundum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Belli, yarın yapacağım",
+          "tag": "plan_var",
+          "icon": "calendar"
+        },
+        {
+          "title": "Düşündüm",
+          "tag": "dusundum",
+          "icon": "lightbulb"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Yarınki en küçük adım ne?",
+      "imageQueries": [
+        "single step stairs",
+        "seedling soil",
+        "first brick"
       ]
     },
-
     "i_t_antivision": {
       "role": "interrupt",
       "texts": [
@@ -317,9 +783,28 @@
         "Anti-vizyonun: '{antiVision}'. Bugünkü hâlinle oraya mı gidiyorsun?"
       ],
       "buttons": [
-        { "title": "Evet", "tag": "anti_vizyona_yakin", "next": "f_escape" },
-        { "title": "Hayır", "tag": "anti_vizyondan_uzak" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Evet",
+          "tag": "anti_vizyona_yakin",
+          "next": "f_escape",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Hayır",
+          "tag": "anti_vizyondan_uzak",
+          "icon": "xmark.circle"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Son 2 saat ona mı benzedi?",
+      "imageQueries": [
+        "grey office cubicle",
+        "rain on window",
+        "empty parking lot"
       ]
     },
     "i_t_identity": {
@@ -330,9 +815,29 @@
         "Kimlik cümlen: '{identity}'. Son bir saat bunu kanıtlıyor mu?"
       ],
       "buttons": [
-        { "title": "Evet", "tag": "kimlige_uygun" },
-        { "title": "Hayır", "tag": "kimlige_aykiri", "next": "f_escape" },
-        { "title": "Emin değilim", "tag": "emin_degilim", "next": "f_filmed" }
+        {
+          "title": "Evet",
+          "tag": "kimlige_uygun",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Hayır",
+          "tag": "kimlige_aykiri",
+          "next": "f_escape",
+          "icon": "xmark.circle"
+        },
+        {
+          "title": "Emin değilim",
+          "tag": "emin_degilim",
+          "next": "f_filmed",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Bu, o kişiye uyuyor mu?",
+      "imageQueries": [
+        "mirror reflection",
+        "fingerprint",
+        "silhouette doorway light"
       ]
     },
     "i_t_enemy": {
@@ -343,9 +848,28 @@
         "Düşmanın: '{enemy}'. Son birkaç saatte direksiyonda o muydu?"
       ],
       "buttons": [
-        { "title": "Evet", "tag": "dusman_kazandi", "next": "f_identity_30" },
-        { "title": "Hayır", "tag": "dusman_kazanamadi" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Evet",
+          "tag": "dusman_kazandi",
+          "next": "f_identity_30",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Hayır",
+          "tag": "dusman_kazanamadi",
+          "icon": "xmark.circle"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Düşman bugün kazandı mı?",
+      "imageQueries": [
+        "chess king fallen",
+        "boxing ring",
+        "storm clouds"
       ]
     },
     "i_t_vision": {
@@ -356,8 +880,23 @@
         "Vizyonun: '{vision}'. Bugün şu ana kadarki saatlerin oraya mı aktı?"
       ],
       "buttons": [
-        { "title": "Evet", "tag": "vizyon_adim" },
-        { "title": "Hayır", "tag": "vizyon_adim_yok", "next": "f_identity_30" }
+        {
+          "title": "Evet",
+          "tag": "vizyon_adim",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Hayır",
+          "tag": "vizyon_adim_yok",
+          "next": "f_identity_30",
+          "icon": "xmark.circle"
+        }
+      ],
+      "gist": "Vizyona bir adım attın mı?",
+      "imageQueries": [
+        "mountain path hiker",
+        "bridge over river",
+        "horizon open sea"
       ]
     },
     "i_t_boss": {
@@ -368,11 +907,25 @@
         "1 aylık projen: '{monthProject}'. Bugün şu ana kadar ona gerçek bir saat verdin mi?"
       ],
       "buttons": [
-        { "title": "Evet", "tag": "boss_ilerleme" },
-        { "title": "Hayır", "tag": "boss_ilerleme_yok", "next": "f_escape" }
+        {
+          "title": "Evet",
+          "tag": "boss_ilerleme",
+          "icon": "checkmark.circle"
+        },
+        {
+          "title": "Hayır",
+          "tag": "boss_ilerleme_yok",
+          "next": "f_escape",
+          "icon": "xmark.circle"
+        }
+      ],
+      "gist": "Boss'a darbe indirdin mi?",
+      "imageQueries": [
+        "boxing bag",
+        "climber rock wall",
+        "hammer anvil"
       ]
     },
-
     "f_direction_ok": {
       "role": "followup",
       "texts": [
@@ -380,7 +933,16 @@
         "Tamam. Kanıtı görevlerde görürüz."
       ],
       "buttons": [
-        { "title": "Tamam", "tag": "tamam" }
+        {
+          "title": "Tamam",
+          "tag": "tamam",
+          "icon": "checkmark"
+        }
+      ],
+      "gist": "Hareket sayılır.",
+      "imageQueries": [
+        "footprints sand",
+        "road ahead sunrise"
       ]
     },
     "f_escape": {
@@ -390,10 +952,36 @@
         "Kaçtığın şey ne?"
       ],
       "buttons": [
-        { "title": "Zor bir işten", "tag": "zor_is", "next": "f_identity_30" },
-        { "title": "Yargılanmaktan", "tag": "yargilanma", "next": "f_identity_30" },
-        { "title": "Sıkıntıdan", "tag": "sikinti", "next": "f_identity_30" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor", "next": "f_identity_30" }
+        {
+          "title": "Zor bir işten",
+          "tag": "zor_is",
+          "next": "f_identity_30",
+          "icon": "mountain.2"
+        },
+        {
+          "title": "Yargılanmaktan",
+          "tag": "yargilanma",
+          "next": "f_identity_30",
+          "icon": "eye"
+        },
+        {
+          "title": "Sıkıntıdan",
+          "tag": "sikinti",
+          "next": "f_identity_30",
+          "icon": "hourglass"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "next": "f_identity_30",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Tam olarak neyden?",
+      "imageQueries": [
+        "exit sign dark",
+        "foggy road",
+        "back turned silhouette"
       ]
     },
     "f_filmed": {
@@ -403,9 +991,29 @@
         "Sözlerini bırak. Son 2 saatteki davranışın ne istediğini söylüyor?"
       ],
       "buttons": [
-        { "title": "İstediğim hayatı", "tag": "istedigim_hayat" },
-        { "title": "Güvenliği, rahatı", "tag": "guvenlik", "next": "f_identity_30" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor", "next": "f_identity_30" }
+        {
+          "title": "İstediğim hayatı",
+          "tag": "istedigim_hayat",
+          "icon": "arrow.up.right"
+        },
+        {
+          "title": "Güvenliği, rahatı",
+          "tag": "guvenlik",
+          "next": "f_identity_30",
+          "icon": "shield"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "next": "f_identity_30",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "İzleyen ne düşünürdü?",
+      "imageQueries": [
+        "film projector light",
+        "security camera",
+        "empty theater seats"
       ]
     },
     "f_identity_30": {
@@ -415,8 +1023,22 @@
         "'{identity}' cümlesini yazan kişi önümüzdeki 30 dakikayı neye harcardı?"
       ],
       "buttons": [
-        { "title": "Onu yapıyorum", "tag": "yapiyorum" },
-        { "title": "Şimdi değil", "tag": "simdi_degil" }
+        {
+          "title": "Onu yapıyorum",
+          "tag": "yapiyorum",
+          "icon": "play.circle"
+        },
+        {
+          "title": "Şimdi değil",
+          "tag": "simdi_degil",
+          "icon": "clock"
+        }
+      ],
+      "gist": "30 dakikada ne yapardı?",
+      "imageQueries": [
+        "clock on wall",
+        "runner starting block",
+        "workbench tools"
       ]
     },
     "f_pretend_step": {
@@ -426,8 +1048,23 @@
         "Bildiğin halde ertelediğin o şey: bugün 15 dakikası senin. Başlıyor musun?"
       ],
       "buttons": [
-        { "title": "Başlıyorum", "tag": "yapiyorum" },
-        { "title": "Bugün değil", "tag": "erteleme", "next": "f_protect_what" }
+        {
+          "title": "Başlıyorum",
+          "tag": "yapiyorum",
+          "icon": "play.circle"
+        },
+        {
+          "title": "Bugün değil",
+          "tag": "erteleme",
+          "next": "f_protect_what",
+          "icon": "clock"
+        }
+      ],
+      "gist": "Ona 15 dakika verir misin?",
+      "imageQueries": [
+        "hourglass sand",
+        "stopwatch",
+        "open notebook morning"
       ]
     },
     "f_protect_what": {
@@ -437,10 +1074,32 @@
         "Bu kaçış seni neyden koruyor?"
       ],
       "buttons": [
-        { "title": "Yargılanmaktan", "tag": "yargilanma" },
-        { "title": "Başarısızlıktan", "tag": "basarisizlik" },
-        { "title": "Belirsizlikten", "tag": "belirsizlik" },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Yargılanmaktan",
+          "tag": "yargilanma",
+          "icon": "eye"
+        },
+        {
+          "title": "Başarısızlıktan",
+          "tag": "basarisizlik",
+          "icon": "xmark.octagon"
+        },
+        {
+          "title": "Belirsizlikten",
+          "tag": "belirsizlik",
+          "icon": "cloud.fog"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Neyden korunuyorsun?",
+      "imageQueries": [
+        "storm shelter",
+        "umbrella heavy rain",
+        "closed shutters"
       ]
     },
     "f_smallest": {
@@ -450,8 +1109,23 @@
         "Yarın canlı geçecek tek bir saat için ne yapacaksın? Tek cümle."
       ],
       "buttons": [
-        { "title": "Yazıyorum", "tag": "plan_var", "input": true },
-        { "title": "Bilmiyorum", "tag": "bilinmiyor" }
+        {
+          "title": "Yazıyorum",
+          "tag": "plan_var",
+          "input": true,
+          "icon": "pencil"
+        },
+        {
+          "title": "Bilmiyorum",
+          "tag": "bilinmiyor",
+          "icon": "questionmark.circle"
+        }
+      ],
+      "gist": "Tek cümle: en küçük versiyon?",
+      "imageQueries": [
+        "seedling soil",
+        "pencil on paper",
+        "single step stairs"
       ]
     }
   }
