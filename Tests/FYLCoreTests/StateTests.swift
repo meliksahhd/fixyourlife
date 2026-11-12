@@ -42,4 +42,23 @@ final class StateTests: XCTestCase {
         if n > 1 { XCTAssertNil(r[1]) }
         XCTAssertEqual(questStatus(AppState(), on: day, calendar: cal), [])
     }
+    func testDecodesV010State() throws {   // 0.1.0 biçimi: görsel alanların hiçbiri yok
+        let json = """
+        {"profile":{"identity":"Yaratıcı biri","antiVision":"a","vision":"v","enemy":"e","yearGoal":"y","monthProject":"m",
+          "whyStuck":"","quests":["Oku"],"constraints":["Uyku"],"monthStart":"2026-11-10T00:00:00Z"},
+         "settings":{"morning":"10:00","evening":"23:30"},"setupNotes":{"0.1":"not"},
+         "events":[{"date":"2026-11-10T07:00:00Z","kind":"sent","nodeId":"morning","text":"x","itemId":"plan-20261110-m"}],
+         "lastPlan":[{"id":"plan-20261111-m","date":"2026-11-11T07:00:00Z","nodeId":"morning","text":"x"}]}
+        """
+        let u = tmpURL(); try Data(json.utf8).write(to: u)
+        let s = try XCTUnwrap(Store.load(u))
+        XCTAssertEqual(s.profile?.identity, "Yaratıcı biri")
+        XCTAssertEqual(s.events.count, 1)
+        XCTAssertNil(s.events.first?.photoId)
+        XCTAssertEqual(s.lastPlan.count, 1)
+        XCTAssertNil(s.lastPlan.first?.photoId)
+        XCTAssertNil(s.lastPlan.first?.title)
+        let siblings = try FileManager.default.contentsOfDirectory(atPath: u.deletingLastPathComponent().path)
+        XCTAssertFalse(siblings.contains { $0.hasPrefix("state-corrupt-") })
+    }
 }

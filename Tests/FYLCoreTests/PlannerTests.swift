@@ -60,4 +60,20 @@ final class PlannerTests: XCTestCase {
         let e = harvestSent(previous: prev, now: d("2026-11-10 11:00"))
         XCTAssertEqual(e.map(\.itemId), ["a"]); XCTAssertEqual(e.first?.kind, .sent); XCTAssertEqual(e.first?.date, d("2026-11-10 10:00"))
     }
+    func testTitles() {
+        let day = items(on: "2026-11-10")
+        XCTAssertEqual(day.first?.title, "Sabah")
+        XCTAssertEqual(day.last?.title, "Görev")
+        let ints = day.filter { $0.id.contains("-i") }
+        XCTAssertEqual(ints.map(\.title), ints.indices.map { "Kesinti · \($0 + 1) / \(ints.count)" })
+        XCTAssertNil(planned().last { $0.id == "plan-reopen" }?.title)
+    }
+    func testSetupDayTitles() {
+        state.profile = nil; state.loopStart = nil; state.setupDate = d("2026-11-11 00:00")
+        XCTAssertEqual(planned().map(\.title), ["Kurulum günü", "Kapanış"])   // s1, synthesis
+    }
+    func testHarvestCarriesPhoto() {
+        let prev = [PlannedItem(id: "a", date: d("2026-11-10 10:00"), nodeId: "morning", text: "", photoId: "p1")]
+        XCTAssertEqual(harvestSent(previous: prev, now: d("2026-11-10 11:00")).first?.photoId, "p1")
+    }
 }

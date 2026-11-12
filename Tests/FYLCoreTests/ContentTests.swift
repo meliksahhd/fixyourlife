@@ -26,4 +26,22 @@ final class ContentTests: XCTestCase {
             }
         }
     }
+
+    func testOptionalVisualFields() throws {
+        let old = fixture()
+        XCTAssertNil(old.nodes["morning"]?.gist); XCTAssertNil(old.nodes["morning"]?.imageQueries)
+        XCTAssertNil(old.nodes["morning"]?.buttons[0].icon); XCTAssertNil(old.protocolMorning[0].imageQueries)
+        let json = fixtureJSON
+            .replacingOccurrences(of: #""morning":{"role":"system","#,
+                                  with: #""morning":{"role":"system","gist":"Bugün kimsin?","imageQueries":["sunrise","mountain"],"#)
+            .replacingOccurrences(of: #"{"title":"Başlıyorum","tag":"basliyorum"}"#,
+                                  with: #"{"title":"Başlıyorum","tag":"basliyorum","icon":"sun.max"}"#)
+            .replacingOccurrences(of: #"{"title":"Acı","questions":["S1?"]}"#,
+                                  with: #"{"title":"Acı","questions":["S1?"],"imageQueries":["fog","empty road"]}"#)
+        let c = try Content.load(Data(json.utf8))
+        XCTAssertEqual(c.nodes["morning"]?.gist, "Bugün kimsin?")
+        XCTAssertEqual(c.nodes["morning"]?.imageQueries, ["sunrise", "mountain"])
+        XCTAssertEqual(c.nodes["morning"]?.buttons[0].icon, "sun.max")
+        XCTAssertEqual(c.protocolMorning[0].imageQueries, ["fog", "empty road"])
+    }
 }
