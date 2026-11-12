@@ -57,6 +57,7 @@ private struct WelcomeView: View {
                     if let u = URL(string: UIApplication.openNotificationSettingsURLString) { UIApplication.shared.open(u) }
                 }
             }
+            PhotoKeySection()
             Section("3. Kurulum günü") {
                 Text("Bütün bir gün ayır. Sabah yaklaşık bir saat, gün içinde birkaç dakikalık sorular, akşam 20 dakika.")
                 DatePicker("Gün", selection: $date, in: tomorrow..., displayedComponents: .date)
@@ -85,6 +86,7 @@ private struct WaitingView: View {
             Section {
                 Button("Tarihi değiştir") { model.state.setupDate = nil; model.replan() }
             }
+            PhotoKeySection()
         }
         .themedForm()
         .navigationTitle("Hazırlan")

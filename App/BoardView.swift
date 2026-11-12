@@ -257,19 +257,6 @@ private struct SettingsSheet: View {
     @State private var evening = Date()
     @State private var setupDay = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!
     @State private var testSent = false
-    @State private var key = ""
-    @State private var checking = false
-    @State private var keyInvalid = false
-
-    private func saveKey() {
-        let k = clean(key)
-        checking = true; keyInvalid = false
-        Task {
-            let ok = await UnsplashClient(key: k).validate()
-            checking = false
-            if ok { model.setPhotoKey(k); key = "" } else { keyInvalid = true }
-        }
-    }
 
     private static let f: DateFormatter = { let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "HH:mm"; return f }()
     private var morningText: String { Self.f.string(from: morning) }
@@ -299,19 +286,7 @@ private struct SettingsSheet: View {
                     Button("Bildirim ayarlarını aç", action: openNotificationSettings)
                 } header: { Text("Bildirimler") } footer: { Text("Test: 1 dakika sonra takipli bir soru gelir. Ana ekrana dönüp bekle.") }
 
-                Section {
-                    if model.photoKey {
-                        LabeledContent("Fotoğraflar açık", value: "önbellekte \(model.photos.available().values.reduce(0) { $0 + $1.count })")
-                        Button("Anahtarı sil", role: .destructive) { model.setPhotoKey(nil) }
-                    } else {
-                        Text("Fotoğraflar kapalı").foregroundStyle(Theme.secondary)
-                        SecureField("Unsplash Access Key", text: $key).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        Button(checking ? "Kontrol ediliyor…" : "Kaydet", action: saveKey).disabled(clean(key).isEmpty || checking)
-                        if keyInvalid { Text("Anahtar geçersiz").foregroundStyle(Theme.accent) }
-                    }
-                } header: { Text("Fotoğraflar") } footer: {
-                    Text("unsplash.com/oauth/applications → uygulaman → Access Key. Anahtar yalnızca bu telefonda, Keychain'de durur.")
-                }
+                PhotoKeySection()
 
                 Section { LabeledContent("İçerik sürümü", value: "\(model.content.version)") }
             }
@@ -334,5 +309,39 @@ private struct SettingsSheet: View {
         model.state.settings.morning = morningText
         model.state.settings.evening = eveningText
         model.replan()
+    }
+}
+
+/// Unsplash anahtarı: Ayarlar'da ve kurulum öncesi ekranlarda (kurulum sabahı soruları da fotoğraflı olsun).
+struct PhotoKeySection: View {
+    @EnvironmentObject var model: AppModel
+    @State private var key = ""
+    @State private var checking = false
+    @State private var keyInvalid = false
+
+    var body: some View {
+        Section {
+            if model.photoKey {
+                LabeledContent("Fotoğraflar açık", value: "önbellekte \(model.photos.available().values.reduce(0) { $0 + $1.count })")
+                Button("Anahtarı sil", role: .destructive) { model.setPhotoKey(nil) }
+            } else {
+                Text("Fotoğraflar kapalı").foregroundStyle(Theme.secondary)
+                SecureField("Unsplash Access Key", text: $key).textInputAutocapitalization(.never).autocorrectionDisabled()
+                Button(checking ? "Kontrol ediliyor…" : "Kaydet", action: save).disabled(clean(key).isEmpty || checking)
+                if keyInvalid { Text("Anahtar geçersiz ya da bağlantı yok").foregroundStyle(Theme.accent) }
+            }
+        } header: { Text("Fotoğraflar") } footer: {
+            Text("unsplash.com/oauth/applications → uygulaman → Access Key. Anahtar yalnızca bu telefonda, Keychain'de durur.")
+        }
+    }
+
+    private func save() {
+        let k = clean(key)
+        checking = true; keyInvalid = false
+        Task {
+            let ok = await UnsplashClient(key: k).validate()
+            checking = false
+            if ok { model.setPhotoKey(k); key = "" } else { keyInvalid = true }
+        }
     }
 }

@@ -34,21 +34,27 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier).filter { $0.hasPrefix("plan-") })
         for it in items {
             let c = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: it.date)
-            try? await center.add(UNNotificationRequest(
-                identifier: it.id,
-                content: body(it.text, node: it.nodeId, itemId: it.id, questIndex: it.questIndex, depth: 1,
-                              title: it.title, thread: Self.thread(it.id), photo: it.photoId.flatMap(cache.fileURL)),
-                trigger: UNCalendarNotificationTrigger(dateMatching: c, repeats: false)))
+            await add(it.id, body(it.text, node: it.nodeId, itemId: it.id, questIndex: it.questIndex, depth: 1,
+                                  title: it.title, thread: Self.thread(it.id), photo: it.photoId.flatMap(cache.fileURL)),
+                      UNCalendarNotificationTrigger(dateMatching: c, repeats: false))
         }
     }
 
     /// Takip, kökün başlığını ve grubunu taşır.
     func send(_ f: FollowUp, itemId: String, title: String?, thread: String?, photoURL: URL?, after seconds: TimeInterval = 3) async {
-        try? await center.add(UNNotificationRequest(
-            identifier: "fu-\(UUID().uuidString)",
-            content: body(f.text, node: f.nodeId, itemId: itemId, questIndex: f.questIndex, depth: f.depth,
-                          title: title, thread: thread, photo: photoURL),
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)))
+        await add("fu-\(UUID().uuidString)",
+                  body(f.text, node: f.nodeId, itemId: itemId, questIndex: f.questIndex, depth: f.depth,
+                       title: title, thread: thread, photo: photoURL),
+                  UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false))
+    }
+
+    /// iOS eki reddederse eksiz yeniden dener: bildirim fotoğraf yüzünden asla düşmez.
+    private func add(_ id: String, _ c: UNMutableNotificationContent, _ trigger: UNNotificationTrigger) async {
+        do { try await center.add(UNNotificationRequest(identifier: id, content: c, trigger: trigger)) }
+        catch where !c.attachments.isEmpty {
+            c.attachments = []
+            try? await center.add(UNNotificationRequest(identifier: id, content: c, trigger: trigger))
+        } catch {}
     }
 
     /// "plan-20261110-i3" → "plan-20261110": bir günün bildirimleri tek grupta.

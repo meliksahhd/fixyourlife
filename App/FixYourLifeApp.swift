@@ -65,16 +65,21 @@ import FYLCore
     func refreshPhotos() async {
         guard !refreshing, reloadIfNeeded(), let key = Keychain.get("unsplashKey") else { return }
         refreshing = true; defer { refreshing = false }
-        let client = UnsplashClient(key: key), target = 3, defaults = UserDefaults.standard
+        let client = UnsplashClient(key: key), target = 6, defaults = UserDefaults.standard
         var queries = content.nodes.compactMapValues(\.imageQueries)
         if state.setupDate != nil {
             for (g, group) in content.protocolMorning.enumerated() { if let q = group.imageQueries { queries["setup.\(g)"] = q } }
         }
         let shown = shownPhotos(state)
-        let reserved = reservedPhotos(state.lastPlan)
-            .union(state.setupNotes.filter { $0.key.hasPrefix("foto.") }.map(\.value))
+        let reserved = protectedPhotos(state, now: Date(), calendar: .current)
         var avail = photos.available(), changed = false
-        let order = refillOrder(queries: queries, available: avail, shown: shown, reserved: reserved, target: target, budget: 10)
+        // Önce yakında bildirimi olan düğümler ve kurulum soruları; kalan bütçe ötekilere (takipler, sonraki sorular).
+        let soon = Set(state.lastPlan.map(\.nodeId)).union(queries.keys.filter { $0.hasPrefix("setup.") })
+        func pick(_ keep: (String) -> Bool, _ budget: Int) -> [String] {
+            refillOrder(queries: queries.filter { keep($0.key) }, available: avail, shown: shown, reserved: reserved, target: target, budget: budget)
+        }
+        let first = pick(soon.contains, 10)
+        let order = first + pick({ !soon.contains($0) }, 10 - first.count)
         nodes: for node in order {
             guard let q = queries[node]?.randomElement() else { continue }
             var need = target - (avail[node] ?? []).filter { !shown.contains($0) && !reserved.contains($0) }.count
@@ -93,7 +98,8 @@ import FYLCore
         }
         let old = prunable(cached: Array(avail.values.joined()), reserved: reserved, shown: shown)
         photos.remove(old)
-        if changed || !old.isEmpty { replan() }
+        // Arka plan görevi dönünce iOS uygulamayı askıya alabilir: bildirimler tamamen kurulmadan dönme.
+        if changed || !old.isEmpty { replan(); await applying?.value }
     }
 
     /// Kurulum sorusunun fotoğrafı: bir kez seçilir ve `setupNotes["foto.<key>"]`de kalır (geri dönünce aynısı).
