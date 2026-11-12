@@ -57,3 +57,11 @@ public func todaysMorningPhoto(_ state: AppState, now: Date, calendar: Calendar)
     }
     return state.lastPlan.first { $0.nodeId == "morning" && isToday($0.date) }?.photoId
 }
+
+/// Temizlikte silinmemesi gerekenler: bekleyen bildirimlere atanmışlar, kurulum soruları (`setupNotes["foto.*"]`)
+/// ve tahtanın gün boyu gösterdiği bugünün sabah fotoğrafı (bildirimle gönderilip "gösterildi" sayılsa da).
+public func protectedPhotos(_ state: AppState, now: Date, calendar: Calendar) -> Set<String> {
+    var s = reservedPhotos(state.lastPlan).union(state.setupNotes.filter { $0.key.hasPrefix("foto.") }.map(\.value))
+    if let m = todaysMorningPhoto(state, now: now, calendar: calendar) { s.insert(m) }
+    return s
+}
