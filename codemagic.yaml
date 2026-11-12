@@ -4,7 +4,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 30
     integrations:
-      app_store_connect: fyl_asc
+      app_store_connect: Ballmark ASC
     environment:
       ios_signing:
         distribution_type: app_store
