@@ -66,6 +66,7 @@ private struct WelcomeView: View {
                 .bold()
             }
         }
+        .themedForm()
         .navigationTitle("FixYourLife")
     }
 }
@@ -85,6 +86,7 @@ private struct WaitingView: View {
                 Button("Tarihi değiştir") { model.state.setupDate = nil; model.replan() }
             }
         }
+        .themedForm()
         .navigationTitle("Hazırlan")
     }
 }
@@ -94,9 +96,9 @@ private struct WaitingView: View {
 private struct SetupDayView: View {
     @EnvironmentObject var model: AppModel
 
-    private var questions: [(key: String, group: String, text: String)] {
+    private var questions: [(key: String, gi: Int, group: String, text: String)] {
         model.content.protocolMorning.enumerated().flatMap { g, group in
-            group.questions.enumerated().map { q, text in (key: "\(g).\(q)", group: group.title, text: text) }
+            group.questions.enumerated().map { q, text in (key: "\(g).\(q)", gi: g, group: group.title, text: text) }
         }
     }
     private var step: Int { Int(model.state.setupNotes["adim"] ?? "") ?? 0 }
@@ -121,26 +123,53 @@ private struct SetupDayView: View {
 private struct QuestionView: View {
     @EnvironmentObject var model: AppModel
     let index: Int, total: Int
-    let item: (key: String, group: String, text: String)
+    let item: (key: String, gi: Int, group: String, text: String)
     let next: () -> Void
     let back: (() -> Void)?
+    @State private var photo: String?
+
+    /// İlk "?"a kadarı soru, sonrası (varsa) italik açıklama.
+    private var parts: (question: String, aside: String?) {
+        guard let q = item.text.firstIndex(of: "?") else { return (item.text, nil) }
+        let rest = item.text[item.text.index(after: q)...].trimmingCharacters(in: .whitespaces)
+        return (String(item.text[...q]), rest.isEmpty ? nil : rest)
+    }
 
     var body: some View {
-        Form {
-            Section {
-                Text("Cevapları kâğıda yaz. Yapay zekâya devretme: asıl iş, düşünmenin kendisi.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
-            Section("\(item.group) · \(index + 1)/\(total)") {
-                Text(item.text).font(.title3)
-                TextField("Kısa not (isteğe bağlı)", text: model.note(item.key), axis: .vertical)
-            }
-            Section {
-                Button("Kâğıda yazdım → devam", action: next).bold()
-                if let back { Button("Geri", action: back) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                PhotoHeader(photoId: photo, height: 280)
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .firstTextBaseline) {
+                        SectionLabel("Sabah · \(item.group)", color: Theme.accent)
+                        Spacer()
+                        Text("\(index + 1) / \(total)").font(.footnote).monospacedDigit().foregroundStyle(Theme.secondary)
+                    }
+                    ProgressView(value: Double(index + 1), total: Double(total)).tint(Theme.text)
+                    Text(parts.question).font(.system(.title, design: .serif)).padding(.top, 28)
+                    if let aside = parts.aside {
+                        Text(aside).font(.system(.title3, design: .serif)).italic().foregroundStyle(Theme.secondary)
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Kısa not (isteğe bağlı)").font(.caption).foregroundStyle(Theme.secondary)
+                        TextField("Bir iki kelime…", text: model.note(item.key), axis: .vertical)
+                        Theme.line.frame(height: 1)
+                    }
+                    .padding(.top, 28)
+                    Text("Kâğıda yaz. Asıl iş, düşünmenin kendisi.")
+                        .font(.footnote).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity).padding(.top, 32)
+                    Button("Kâğıda yazdım", action: next).buttonStyle(PrimaryButtonStyle())
+                    if let back {
+                        Button("Geri", action: back).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                }
+                .padding(24)
             }
         }
-        .navigationTitle("Sabah protokolü")
+        .foregroundStyle(Theme.text)
+        .background(Theme.bg)
+        .toolbar(.hidden, for: .navigationBar)
+        .task(id: item.key) { photo = model.setupPhoto(key: item.key, group: item.gi) }
     }
 }
 
@@ -159,6 +188,7 @@ private struct IdentityView: View {
                 Button("Geri", action: back)
             }
         }
+        .themedForm()
         .navigationTitle("Sabah protokolü")
     }
 }
@@ -177,6 +207,7 @@ private struct DayView: View {
                 Button("Geri", action: back)
             }
         }
+        .themedForm()
         .navigationTitle("Gün içi")
     }
 }
@@ -210,6 +241,7 @@ private struct SynthesisView: View {
                 Button("Geri", action: back)
             }
         }
+        .themedForm()
         .navigationTitle("Akşam sentezi")
         .onAppear(perform: prefill)
     }

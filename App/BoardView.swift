@@ -15,47 +15,85 @@ struct BoardView: View {
         var id: String { rawValue }
     }
 
+    @AppStorage("fotoIpucuKapali") private var tipClosed = false
+
     var body: some View {
         NavigationStack {
             if let p = model.state.profile {
-                List {
-                    if notificationsOff {
-                        Section {
-                            Label("Bildirimler kapalı. Sorular gelmez.", systemImage: "bell.slash").foregroundStyle(.red)
-                            Button("Bildirim ayarlarını aç", action: openNotificationSettings)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack {
+                            SectionLabel(dayLabel)
+                            Spacer()
+                            Button { showSettings = true } label: {
+                                Image(systemName: "gearshape").foregroundStyle(Theme.secondary).frame(width: 44, height: 44, alignment: .trailing)
+                            }
+                            .accessibilityLabel("Ayarlar")
                         }
-                    }
-                    row("Kimlik", "Ben \(p.identity) tipte biriyim.", .identity)
-                    row("Kazanma koşulu", p.vision, .vision)
-                    row("Risk", p.antiVision, .antiVision)
-                    row("Ana görev · 1 yıl", p.yearGoal, .yearGoal)
-                    Section("Boss · 1 ay") {
+                        PhotoHeader(photoId: todaysMorningPhoto(model.state, now: Date(), calendar: .current), height: 240)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                        if notificationsOff {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("Bildirimler kapalı. Sorular gelmez.", systemImage: "bell.slash").foregroundStyle(Theme.accent)
+                                Button("Bildirim ayarlarını aç", action: openNotificationSettings)
+                            }
+                            .card(Theme.riskCard)
+                        }
+                        if !model.photoKey && !tipClosed {
+                            HStack(alignment: .top) {
+                                Text("Fotoğrafları açmak için Ayarlar'a Unsplash anahtarını ekle.").font(.subheadline).foregroundStyle(Theme.secondary)
+                                Spacer()
+                                Button { tipClosed = true } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
+                                    .foregroundStyle(Theme.secondary).accessibilityLabel("İpucunu kapat")
+                            }
+                            .card()
+                        }
+
+                        Button { editing = .identity } label: {
+                            (Text("Ben ") + Text(p.identity).foregroundStyle(Theme.accent) + Text(" tipte biriyim."))
+                                .font(.system(.largeTitle, design: .serif)).multilineTextAlignment(.leading)
+                        }
+
                         Button { editing = .monthProject } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(p.monthProject)
-                                Text("\(daysLeft(p)) gün kaldı").font(.footnote).foregroundStyle(.secondary)
-                            }
-                        }
-                        .tint(.primary)
-                    }
-                    Section("Bugünün görevleri") {
-                        let status = questStatus(model.state, on: logicalDay(Date(), calendar: .current), calendar: .current)
-                        ForEach(Array(p.quests.enumerated()), id: \.offset) { i, q in
-                            Button { tap(i, current: status.indices.contains(i) ? status[i] : nil) } label: {
-                                HStack {
-                                    Image(systemName: Self.icon(status.indices.contains(i) ? status[i] : nil))
-                                    Text(q)
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    SectionLabel("Boss · 1 ay"); Spacer()
+                                    Text("\(daysLeft(p)) gün kaldı").font(.footnote).monospacedDigit()
                                 }
+                                Text(p.monthProject).font(.body.weight(.medium)).multilineTextAlignment(.leading)
+                                ProgressView(value: Double(30 - daysLeft(p)), total: 30).tint(Theme.accent)
                             }
-                            .tint(.primary)
+                            .card()
                         }
-                        Button("Görevleri düzenle") { editing = .quests }.font(.footnote)
+
+                        questsCard(p)
+
+                        HStack(alignment: .top, spacing: 10) {
+                            smallCard("Kazanma", p.vision, .vision)
+                            smallCard("Risk", p.antiVision, .antiVision, label: Theme.accent, bg: Theme.riskCard)
+                        }
+                        Button { editing = .yearGoal } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                SectionLabel("Ana görev · 1 yıl")
+                                Text(p.yearGoal).font(.subheadline).multilineTextAlignment(.leading)
+                            }
+                            .card()
+                        }
+                        HStack {
+                            Button { editing = .enemy } label: {
+                                (Text("Düşman: ").foregroundStyle(Theme.secondary) + Text(p.enemy)).font(.footnote).multilineTextAlignment(.leading)
+                            }
+                            Spacer()
+                            Button("Kurallar ›") { editing = .constraints }.font(.footnote).foregroundStyle(Theme.secondary)
+                        }
+                        .frame(minHeight: 44).padding(.horizontal, 4)
                     }
-                    row("Kurallar", p.constraints.isEmpty ? "Yok" : p.constraints.joined(separator: "\n"), .constraints)
-                    row("Düşman", p.enemy, .enemy)
+                    .padding(.horizontal, 20).padding(.bottom, 24)
                 }
-                .navigationTitle("Oyun tahtası")
-                .toolbar { Button { showSettings = true } label: { Image(systemName: "gearshape") } }
+                .buttonStyle(.plain)
+                .foregroundStyle(Theme.text)
+                .background(Theme.bg)
+                .toolbar(.hidden, for: .navigationBar)
                 .sheet(item: $editing) { EditSheet(field: $0) }
                 .sheet(isPresented: $showSettings) { SettingsSheet() }
                 .task(id: phase) { await checkNotifications() }
@@ -63,8 +101,47 @@ struct BoardView: View {
         }
     }
 
-    private func row(_ title: String, _ value: String, _ field: Field) -> some View {
-        Section(title) { Button(value) { editing = field }.tint(.primary) }
+    private func questsCard(_ p: Profile) -> some View {
+        let status = questStatus(model.state, on: logicalDay(Date(), calendar: .current), calendar: .current)
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                SectionLabel("Bugünün görevleri"); Spacer()
+                Button("Düzenle") { editing = .quests }.font(.footnote).foregroundStyle(Theme.secondary).frame(minHeight: 44)
+            }
+            ForEach(Array(p.quests.enumerated()), id: \.offset) { i, q in
+                let st = status.indices.contains(i) ? status[i] : nil
+                if i > 0 { Theme.line.frame(height: 0.5) }
+                Button { tap(i, current: st) } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: Self.icon(st)).font(.title3).foregroundStyle(st == "yapmadim" ? Theme.accent : Theme.text)
+                        Text(q).strikethrough(st == "yaptim").foregroundStyle(st == "yaptim" ? Theme.secondary : Theme.text)
+                        Spacer()
+                    }
+                    .frame(minHeight: 48).contentShape(Rectangle())
+                }
+            }
+        }
+        .card()
+        .sensoryFeedback(.selection, trigger: model.state.events.count)
+    }
+
+    private var dayLabel: String {
+        let cal = Calendar.current, today = logicalDay(Date(), calendar: cal)
+        let n = model.state.loopStart.map { (cal.dateComponents([.day], from: cal.startOfDay(for: $0), to: today).day ?? 0) + 1 } ?? 1
+        return "Gün \(max(n, 1)) · " + today.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: "tr_TR")))
+    }
+
+    private func smallCard(_ title: String, _ value: String, _ field: Field, label: Color = Theme.secondary, bg: Color = Theme.card) -> some View {
+        Button { editing = field } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(title, color: label)
+                Text(value).font(.system(.callout, design: .serif)).multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .card(bg)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func daysLeft(_ p: Profile) -> Int {
@@ -137,6 +214,7 @@ private struct EditSheet: View {
                     }
                 }
             }
+            .themedForm()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Vazgeç") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button("Kaydet", action: save).disabled(!valid) }
@@ -179,6 +257,19 @@ private struct SettingsSheet: View {
     @State private var evening = Date()
     @State private var setupDay = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!
     @State private var testSent = false
+    @State private var key = ""
+    @State private var checking = false
+    @State private var keyInvalid = false
+
+    private func saveKey() {
+        let k = clean(key)
+        checking = true; keyInvalid = false
+        Task {
+            let ok = await UnsplashClient(key: k).validate()
+            checking = false
+            if ok { model.setPhotoKey(k); key = "" } else { keyInvalid = true }
+        }
+    }
 
     private static let f: DateFormatter = { let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "HH:mm"; return f }()
     private var morningText: String { Self.f.string(from: morning) }
@@ -208,8 +299,23 @@ private struct SettingsSheet: View {
                     Button("Bildirim ayarlarını aç", action: openNotificationSettings)
                 } header: { Text("Bildirimler") } footer: { Text("Test: 1 dakika sonra takipli bir soru gelir. Ana ekrana dönüp bekle.") }
 
+                Section {
+                    if model.photoKey {
+                        LabeledContent("Fotoğraflar açık", value: "önbellekte \(model.photos.available().values.reduce(0) { $0 + $1.count })")
+                        Button("Anahtarı sil", role: .destructive) { model.setPhotoKey(nil) }
+                    } else {
+                        Text("Fotoğraflar kapalı").foregroundStyle(Theme.secondary)
+                        SecureField("Unsplash Access Key", text: $key).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        Button(checking ? "Kontrol ediliyor…" : "Kaydet", action: saveKey).disabled(clean(key).isEmpty || checking)
+                        if keyInvalid { Text("Anahtar geçersiz").foregroundStyle(Theme.accent) }
+                    }
+                } header: { Text("Fotoğraflar") } footer: {
+                    Text("unsplash.com/oauth/applications → uygulaman → Access Key. Anahtar yalnızca bu telefonda, Keychain'de durur.")
+                }
+
                 Section { LabeledContent("İçerik sürümü", value: "\(model.content.version)") }
             }
+            .themedForm()
             .navigationTitle("Ayarlar")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Bitti") { dismiss() } } }
             .onAppear {

@@ -50,6 +50,15 @@ import FYLCore
         applying = Task { [notifier, photos] in await previous?.value; await notifier.apply(items, cache: photos) }
     }
 
+    @Published private(set) var photoKey = Keychain.get("unsplashKey") != nil
+
+    /// nil siler. Fotoğraflar önbellekte kalır; yalnızca yenileri gelmez.
+    func setPhotoKey(_ key: String?) {
+        Keychain.set("unsplashKey", key)
+        photoKey = key != nil
+        if key != nil { Task { await refreshPhotos() } }
+    }
+
     private var refreshing = false
 
     /// Önbelleği doldurur (ön plan ve arka plan yenilemesi). Anahtar yoksa ya da ağ hatasında sessizce durur.
@@ -153,7 +162,16 @@ struct FixYourLifeApp: App {
     @StateObject private var model = AppModel.shared
     @Environment(\.scenePhase) private var phase
 
-    init() { _ = AppModel.shared }   // delegate'i uygulama açılırken ata
+    init() {
+        _ = AppModel.shared   // delegate'i uygulama açılırken ata
+        // Gezinme başlıkları serif (New York).
+        let serif = { (style: UIFont.TextStyle) -> UIFont in
+            let base = UIFont.preferredFont(forTextStyle: style).fontDescriptor
+            return UIFont(descriptor: base.withDesign(.serif) ?? base, size: 0)
+        }
+        UINavigationBar.appearance().largeTitleTextAttributes = [.font: serif(.largeTitle)]
+        UINavigationBar.appearance().titleTextAttributes = [.font: serif(.headline)]
+    }
 
     /// Protokol yeniden çalışıyorsa (profil var), kurulum günü gelince kurulum ekranı açılır; o güne kadar tahta.
     private var isSetupDay: Bool {
@@ -167,6 +185,8 @@ struct FixYourLifeApp: App {
                 if model.state.profile == nil || isSetupDay { SetupView() } else { BoardView() }
             }
             .environmentObject(model)
+            .preferredColorScheme(.dark)
+            .tint(Theme.accent)
         }
         .onChange(of: phase, initial: true) { _, p in
             if p == .active {
