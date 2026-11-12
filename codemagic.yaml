@@ -10,7 +10,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.meliksahhd.fixyourlife
       vars:
-        APP_STORE_APPLE_ID: 0   # Pazar: App Store Connect'teki uygulamanın Apple ID numarası
+        APP_STORE_APPLE_ID: 6833892471
       xcode: latest
     triggering:   # yalnızca build-* etiketleri: ücretsiz 500 dk/ay kotası korunur
       events:
