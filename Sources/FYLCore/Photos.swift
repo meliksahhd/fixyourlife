@@ -34,11 +34,13 @@ public func pickFollowUpPhoto(nodeId: String, available: [String: [String]], sho
 /// Sorgusu olan ve kullanılmamış fotoğrafı `target`'tan az olan düğümler; en azı önce (eşitlikte id), en çok `budget`.
 public func refillOrder(queries: [String: [String]], available: [String: [String]], shown: Set<String>,
                         reserved: Set<String>, target: Int, budget: Int) -> [String] {
-    queries.filter { !$0.value.isEmpty }.keys
-        .map { id in (id, (available[id] ?? []).filter { !shown.contains($0) && !reserved.contains($0) }.count) }
-        .filter { $0.1 < target }
-        .sorted { $0.1 != $1.1 ? $0.1 < $1.1 : $0.0 < $1.0 }
-        .prefix(max(budget, 0)).map(\.0)
+    var need: [(id: String, unused: Int)] = []
+    for (id, q) in queries where !q.isEmpty {
+        let unused = (available[id] ?? []).filter { !shown.contains($0) && !reserved.contains($0) }.count
+        if unused < target { need.append((id, unused)) }
+    }
+    need.sort { $0.unused != $1.unused ? $0.unused < $1.unused : $0.id < $1.id }
+    return need.prefix(max(budget, 0)).map(\.id)
 }
 
 /// Silinebilecek önbellek dosyaları: gösterilmiş ve hiçbir bekleyen bildirime ayrılmamış olanlar.
