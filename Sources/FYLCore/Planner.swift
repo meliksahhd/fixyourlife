@@ -2,8 +2,10 @@ import Foundation
 
 public struct PlannedItem: Codable, Equatable {
     public var id: String; public var date: Date; public var nodeId: String; public var text: String; public var questIndex: Int?
-    public init(id: String, date: Date, nodeId: String, text: String, questIndex: Int? = nil) {
+    public var title: String?; public var photoId: String?
+    public init(id: String, date: Date, nodeId: String, text: String, questIndex: Int? = nil, title: String? = nil, photoId: String? = nil) {
         self.id = id; self.date = date; self.nodeId = nodeId; self.text = text; self.questIndex = questIndex
+        self.title = title; self.photoId = photoId
     }
 }
 
@@ -35,13 +37,14 @@ public func plan(now: Date, state: AppState, content: Content, calendar: Calenda
         if day == setupDay {
             for (k, s) in content.setupSchedule.enumerated() {
                 guard let m = minutes(s.time), let t = text(s.node, nil) else { continue }
-                out.append(PlannedItem(id: "\(pre)-s\(k)", date: at(day, m), nodeId: s.node, text: t))
+                out.append(PlannedItem(id: "\(pre)-s\(k)", date: at(day, m), nodeId: s.node, text: t,
+                                       title: s.node == "synthesis" ? "Kapanış" : "Kurulum günü"))
             }
             continue
         }
         guard p != nil, let loop = loopDay, day >= loop else { continue }
 
-        if let t = text("morning", nil) { out.append(PlannedItem(id: "\(pre)-m", date: at(day, morning), nodeId: "morning", text: t)) }
+        if let t = text("morning", nil) { out.append(PlannedItem(id: "\(pre)-m", date: at(day, morning), nodeId: "morning", text: t, title: "Sabah")) }
 
         var rng = SplitMix64(seed: UInt64(ymd))
         var n = Int.random(in: 5...6, using: &rng)
@@ -59,11 +62,12 @@ public func plan(now: Date, state: AppState, content: Content, calendar: Calenda
                 if let until = state.chainUntil, until > now, date >= now, date < until {
                     date = until.addingTimeInterval(Double(shifted * 60)); shifted += 1
                 }
-                out.append(PlannedItem(id: "\(pre)-i\(k)", date: date, nodeId: id, text: variants.randomElement(using: &rng)!))
+                out.append(PlannedItem(id: "\(pre)-i\(k)", date: date, nodeId: id, text: variants.randomElement(using: &rng)!,
+                                       title: "Kesinti · \(k + 1) / \(n)"))
             }
         }
 
-        if let t = text("quest_check", 0) { out.append(PlannedItem(id: "\(pre)-e", date: at(day, evening), nodeId: "quest_check", text: t, questIndex: 0)) }
+        if let t = text("quest_check", 0) { out.append(PlannedItem(id: "\(pre)-e", date: at(day, evening), nodeId: "quest_check", text: t, questIndex: 0, title: "Görev")) }
     }
 
     var result = Array(out.filter { $0.date > now }.sorted { $0.date < $1.date }.prefix(59))
@@ -77,7 +81,7 @@ public func plan(now: Date, state: AppState, content: Content, calendar: Calenda
 /// Geçmişte kalan planlı öğeler "gönderildi" olayına dönüşür (ayna için ham veri).
 public func harvestSent(previous: [PlannedItem], now: Date) -> [Event] {
     previous.filter { $0.date <= now }.map {
-        Event(date: $0.date, kind: .sent, nodeId: $0.nodeId, text: $0.text, questIndex: $0.questIndex, itemId: $0.id)
+        Event(date: $0.date, kind: .sent, nodeId: $0.nodeId, text: $0.text, questIndex: $0.questIndex, itemId: $0.id, photoId: $0.photoId)
     }
 }
 

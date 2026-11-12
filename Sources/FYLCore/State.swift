@@ -23,10 +23,11 @@ public enum EventKind: String, Codable { case sent, answered, note }
 public struct Event: Codable, Equatable {
     public var date: Date; public var kind: EventKind; public var nodeId: String
     public var tag: String?; public var text: String?; public var questIndex: Int?; public var itemId: String?
+    public var photoId: String?
     public init(date: Date, kind: EventKind, nodeId: String, tag: String? = nil, text: String? = nil,
-                questIndex: Int? = nil, itemId: String? = nil) {
+                questIndex: Int? = nil, itemId: String? = nil, photoId: String? = nil) {
         self.date = date; self.kind = kind; self.nodeId = nodeId; self.tag = tag
-        self.text = text; self.questIndex = questIndex; self.itemId = itemId
+        self.text = text; self.questIndex = questIndex; self.itemId = itemId; self.photoId = photoId
     }
 }
 

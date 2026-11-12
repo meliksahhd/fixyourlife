@@ -4,15 +4,17 @@ public enum Role: String, Codable { case interrupt, followup, setup, system }
 
 public struct Button: Codable, Equatable {
     public var title: String; public var tag: String; public var next: String?; public var input: Bool?; public var foreground: Bool?
+    public var icon: String?   // SF Symbol adı
 }
 
 public struct Node: Codable, Equatable {
     public var role: Role; public var texts: [String]; public var buttons: [Button]; public var perQuest: Bool?; public var after: String?
+    public var gist: String?; public var imageQueries: [String]?   // bildirim alt satırı; Unsplash sorguları (İngilizce)
 }
 
 public struct TimedNode: Codable, Equatable { public var time: String /* "HH:mm" */; public var node: String }
 
-public struct QuestionGroup: Codable, Equatable { public var title: String; public var questions: [String] }
+public struct QuestionGroup: Codable, Equatable { public var title: String; public var questions: [String]; public var imageQueries: [String]? }
 
 public enum ContentError: Error { case invalid([String]) }
 
