@@ -25,6 +25,8 @@ targets:
         UILaunchScreen: {}
         ITSAppUsesNonExemptEncryption: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [com.meliksahhd.fixyourlife.photos]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.meliksahhd.fixyourlife
