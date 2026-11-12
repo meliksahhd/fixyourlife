@@ -70,4 +70,14 @@ final class PhotosTests: XCTestCase {
         s2.lastPlan = [item("m", "morning", photo: "plan", at: "2026-11-10 10:00"), item("m2", "morning", photo: "yarin", at: "2026-11-11 10:00")]
         XCTAssertEqual(todaysMorningPhoto(s2, now: d("2026-11-10 08:00"), calendar: cal), "plan")
     }
+    func testProtectedPhotosKeepsBoardSetupAndPending() {
+        // Sabah 10:00'da p1 ile geldi ve hasat edildi; tahta onu gün boyu gösterir, silinmemeli.
+        var s = AppState()
+        s.events = [Event(date: d("2026-11-10 10:00"), kind: .sent, nodeId: "morning", photoId: "p1")]
+        s.lastPlan = [item("a", "i1", photo: "p2", at: "2026-11-10 13:00")]
+        s.setupNotes = ["foto.0.1": "p3", "0.1": "not"]
+        let kept = protectedPhotos(s, now: d("2026-11-10 10:05"), calendar: cal)
+        XCTAssertEqual(kept, ["p1", "p2", "p3"])
+        XCTAssertEqual(prunable(cached: ["p1", "p9"], reserved: kept, shown: shownPhotos(s).union(["p9"])), ["p9"])
+    }
 }
