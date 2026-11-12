@@ -44,4 +44,21 @@ final class ContentTests: XCTestCase {
         XCTAssertEqual(c.nodes["morning"]?.buttons[0].icon, "sun.max")
         XCTAssertEqual(c.protocolMorning[0].imageQueries, ["fog", "empty road"])
     }
+
+    func testBundledContentHasVisuals() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let c = try Content.load(Data(contentsOf: root.appendingPathComponent("content/system.json")))
+        for (id, n) in c.nodes where id != "reopen" {
+            let g = n.gist ?? ""
+            XCTAssertFalse(g.isEmpty, "\(id): gist yok")
+            XCTAssertLessThanOrEqual(g.count, 40, "\(id): gist 40 karakterden uzun")
+            let q = n.imageQueries ?? []
+            XCTAssertTrue((2...3).contains(q.count), "\(id): imageQueries 2–3 olmalı")
+            XCTAssertFalse(q.contains { $0.trimmingCharacters(in: .whitespaces).isEmpty }, "\(id): boş sorgu")
+            for b in n.buttons { if let i = b.icon { XCTAssertFalse(i.isEmpty, "\(id): boş simge") } }
+        }
+        for g in c.protocolMorning {
+            XCTAssertTrue((2...3).contains(g.imageQueries?.count ?? 0), "\(g.title): imageQueries 2–3 olmalı")
+        }
+    }
 }
