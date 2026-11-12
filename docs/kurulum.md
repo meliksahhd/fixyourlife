@@ -41,3 +41,16 @@ Sen 2. adımdaki Apple Kimliği numarasını ilettikten sonra `codemagic.yaml` i
 - [ ] Tahtada Ayarlar → **Test bildirimi**. Ana ekrana dön (uygulamayı kaydırıp kapatma). Yaklaşık 1 dakika sonra bildirim geliyor, kilitliyken "Sana bir sorum var" yazıyor.
 - [ ] Bildirime uzun bas, butonlar görünüyor. **"Çoğu ölüydü"** butonuna bas: uygulama açılmadan birkaç saniye içinde takip sorusu geliyor.
 - [ ] Takip sorusundaki "Yazıyorum" butonunda klavye açılıyor, yazıp **Gönder** diyebiliyorsun.
+
+## 0.2.0: Fotoğraflar
+
+**Unsplash anahtarı (tek seferlik).** [unsplash.com/oauth/applications](https://unsplash.com/oauth/applications) → uygulaman (`FixYourLife`) → **Keys** → **Access Key**'i kopyala. Uygulamada oyun tahtası → Ayarlar (dişli) → **Fotoğraflar** → anahtarı yapıştır → **Kaydet**. "Fotoğraflar açık" görünmeli. Anahtar yalnızca telefonun Keychain'inde durur; repoya ya da bir dosyaya yazılmaz.
+
+- [ ] Ayarlar → Fotoğraflar: anahtar kaydedilince birkaç saniye sonra "önbellekte N fotoğraf" sayısı artıyor (ekranı kapatıp açınca güncellenir).
+- [ ] **Test bildirimi**: bildirimde sağda küçük fotoğraf var; uzun basınca fotoğraf büyük açılıyor. Üstte "Kesinti · test" başlığı, altında kısa alt satır ("Canlı mıydın, ölü müydün?").
+- [ ] Butonların yanında simgeler var (güneş, ay, soru işareti…).
+- [ ] Takip sorusu aynı grupta, aynı başlıkla geliyor.
+- [ ] Günün planlı bildirimleri Bildirim Merkezi'nde tek grupta toplanıyor; sabah bildirimi "Sabah", kesintiler "Kesinti · 2 / 6" gibi numaralı.
+- [ ] Oyun tahtasının üstünde bugünün sabah fotoğrafı ve sağ altında "Foto: <ad> / Unsplash" atfı var; atfa dokununca fotoğrafçının sayfası açılıyor.
+- [ ] Uçak modunda test bildirimi yine geliyor (fotoğraf önbellekten; önbellek boşsa fotoğrafsız).
+- [ ] Beğenmediğin fotoğraf temasını bana yaz ("kaçış fotoğrafları fazla karanlık" gibi); sorguları içerikte değiştiririm.
