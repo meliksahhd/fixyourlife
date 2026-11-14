@@ -1,6 +1,6 @@
 # Uygulama dönüşümü: para, kurlar, alınacaklar, takvim
 
-Tarih: 2026-11-13 · Durum: taslak, kullanıcı onayı bekliyor · Önceki belgeler: `2026-11-03-fixyourlife-design.md`, `2026-11-12-gorsel-kimlik-design.md` (ikisi de bu belgeyle **geçersiz**)
+Tarih: 2026-11-13 (2026-11-14: Ziraat Excel içe aktarma eklendi) · Durum: onaylandı · Önceki belgeler: `2026-11-03-fixyourlife-design.md`, `2026-11-12-gorsel-kimlik-design.md` (ikisi de bu belgeyle **geçersiz**)
 
 ## 1. Amaç ve neden
 
@@ -16,14 +16,15 @@ Kullanıcı genelde **Ziraat Bankası banka kartıyla** ödüyor. Gelir de aynı
 ## 2. Hedefler
 
 1. Uygulama açılınca ilk saniyede şunlar görünür: anlık kurlar, bu ayki harcama, geçen ayla adil karşılaştırma, en çok harcanan kategoriler.
-2. Bir harcama ya da gelir birkaç saniyede elle eklenir.
+2. Banka kartı hareketleri Ziraat'in Excel dosyasından ayda bir paylaşımla gelir; kullanıcı harcama yazmaz. Elle ekleme yalnızca nakit için, birkaç saniyede.
 3. Alınacaklar listesinde bekleyen bir şey varsa her gün öğlen hatırlatılır. Alınan şey tek dokunuşla harcamaya dönüşür.
 4. Takvimdeki her olay için zamanında bildirim gelir. Hiçbiri kaçmaz.
 5. Veriler telefondan dışa aktarılabilir. Uygulama silinse bile kullanıcı verisini kurtarabilir.
 
 ## 3. Hedef olmayanlar (bu sürüm)
 
-- **Ziraat ekstresinden içe aktarma.** Araştırmaya göre bireysel müşteriye Excel/CSV verildiği doğrulanamadı, muhtemelen yalnızca PDF var. Kullanıcı gerçek bir dosya getirince ayrı bir iş olarak ele alınacak. Elle giriş tek başına yeterli olmalı.
+- Kredi kartı ekstresi içe aktarma (kullanıcı kredi kartını nadiren kullanıyor; kart borcu ödemesi banka hesabından tek gider olarak görünür).
+- Başka bankaların dosyaları.
 - Bütçe limiti, birikim hedefi, banka bağlantısı.
 - Portföy (elindeki altını ve dövizi girip toplam değerini görme). Kullanıcı açıkça "sadece anlık fiyatları göreyim yeter" dedi.
 - Market alışverişi listesi. Liste yalnızca büyük ihtiyaçlar için.
@@ -38,7 +39,8 @@ Kullanıcı genelde **Ziraat Bankası banka kartıyla** ödüyor. Gelir de aynı
 - **Veri kaybı.** Okunamayan durum dosyasının üzerine boş durum yazılmamalı. Mevcut `Store.load` tam olarak bunu önlüyor (okunamıyorsa `nil` döner, kayıt yapılmaz). Bu davranış korunmalı.
 - **Kaçan hatırlatma.** Bir doğum gününün ya da sınavın bildirimi, 64 bildirim sınırı ya da uygulamanın uzun süre açılmaması yüzünden düşmemeli.
 - **Bildirim yağmuru.** Aynı gün birden fazla olay tek bildirimde toplanır. Liste hatırlatması günde en fazla bir kez gelir. Liste boşsa hiç gelmez.
-- **Harcama eklemenin zahmetli olması.** Ekleme 3 alanı geçerse kullanıcı girmeyi bırakır ve ana ekrandaki rakamlar anlamsızlaşır.
+- **Harcama eklemenin zahmetli olması.** Kullanıcı "elle girmek çok yorucu olur" dedi. Kart harcamaları içe aktarmayla gelir; kullanıcının işi ayda bir dosya paylaşmak ve tanınmayan bir işyerinin kategorisini **bir kez** düzeltmektir.
+- **Çift kayıt.** Çakışan dönemlerin dosyaları ya da aynı dosyanın iki kez içe aktarılması kaydı çoğaltmamalı.
 - **Kur yokken boş ekran ya da hata.** İnternet yoksa son alınan değer, saatiyle birlikte gösterilir.
 
 ## 5. Kısıtlar
@@ -78,8 +80,8 @@ Alt sekme çubuğunda dört sekme: **Özet · Hareketler · Alınacaklar · Takv
 Kaydet ile kapanır.
 
 **Kategoriler** *(benim kararım, Ayarlar'dan eklenir, silinir, yeniden adlandırılır)*:
-- Gider: Market, Yemek / kafe, Ulaşım, Fatura, Kira, Giyim, Eğlence, Sağlık, Eğitim, Diğer
-- Gelir: Maaş, Ek gelir, Diğer
+- Gider: Market, Yemek / kafe, Ulaşım, Fatura, Abonelik, Kira, Giyim, Eğlence, Sağlık, Eğitim, Kişilere gönderilen, Kredi kartı, Banka ücreti, Diğer
+- Gelir: Burs, Maaş, Kişilerden gelen, Ek gelir, Diğer
 
 Kullanımda olan bir kategori silinirse kayıtlar "Diğer"e taşınır. Kayıtlar kategoriye ad ile değil **sabit kimlik** ile bağlanır. Yeniden adlandırma geçmiş kayıtlara da yansır. "Diğer" silinemez.
 
@@ -131,7 +133,36 @@ Olay alanları: ad, tür, tarih (sınav ve görev için isteğe bağlı saat), h
 - Yıllık boyut tahmini: günde 10 kayıt ≈ 1 MB/yıl. Arşivleme ya da budama gerekmez.
 - Eski FixYourLife durumu (profil, olaylar, kurulum) taşınmaz. Kullanıcı yalnızca bir gün kullandı. Yeni sürüm eski `state.json` dosyasını okuyamazsa onu kenara alıp temiz başlar *(benim kararım)*.
 
-### 6.7 Kaldırılanlar
+### 6.7 Ziraat Excel içe aktarma
+
+Kullanıcı Ziraat Mobil'de Hesap Hareketleri → Paylaş → Excel ile `.xlsx` alır ve FixYourLife'a paylaşır (paylaşım sayfasından ya da Hareketler'deki "İçe aktar" ile Dosyalar'dan). Gerçek dosya 2026-11-14'te incelendi:
+
+- Tek sayfa, `xl/worksheets/sheet.xml`, `x:` önekli, hücreler satır içi metin (`t="str"`) ya da sayı (`t="n"`), paylaşılan dize tablosu yok, hücrelerde `r` adresi yok (sıra konumdur).
+- Başlık satırı: `Tarih | Fiş No | Açıklama | İşlem Tutarı | Bakiye`. Tarih `dd.MM.yyyy` (saat yok), tutar işaretli ondalık (`-76.5`, `400`), bakiye ondalık.
+- Fiş no tek başına benzersiz değil (havale + komisyon + BSMV aynı fişte). **Tarih + fiş + tutar + bakiye** benzersiz; çift kayıt bu anahtarla önlenir.
+
+Sınıflandırma (açıklama metnine göre, ilk eşleşen):
+
+| Açıklama | Sonuç |
+|---|---|
+| `Nolu Hesaba` / `Nolu Hesaptan` (kendi hesapları arası virman, yatırım için kenara konan para) | **alınmaz** |
+| `IADE` / `İADE` (küçük iadeler) | alınmaz |
+| `KK Nakit Avans` | alınmaz |
+| `KK TAHSİLAT` | gider · Kredi kartı |
+| `BSMV`, `Komisyon`, `MESAJ ÜCRETİ` | gider · Banka ücreti |
+| `İŞYERİ: <ad>` içeren kart harcaması | gider · öğrenilmiş kural, yoksa anahtar kelime tablosu, yoksa Diğer |
+| `Fatura No` | gider · Fatura |
+| diğer `FAST` / `Havale` çıkışı | gider · Kişilere gönderilen |
+| `BURS` içeren giriş | gelir · Burs |
+| diğer giriş | gelir · Kişilerden gelen |
+
+- Kayıt tarihi gün ortası (12:00), not alanı işyeri adı ya da açıklamanın sadeleştirilmiş hâli.
+- **Öğrenme:** içe aktarılmış bir kaydın kategorisi değiştirilince işyeri → kategori kuralı kaydedilir ve aynı işyerinin tüm içe aktarılmış kayıtları da güncellenir. Sonraki dosyalarda kural uygulanır. Kullanıcı her işyerini en fazla bir kez düzeltir.
+- İçe aktarma sonunda özet gösterilir: "52 yeni hareket eklendi · 9 atlandı · 30 zaten vardı".
+- Başlık satırı bulunamazsa (yanlış dosya) hiçbir şey eklenmez ve "Bu dosya Ziraat hesap hareketleri gibi görünmüyor" denir.
+- Elle eklenen kart harcaması sonradan içe aktarılırsa çift görünür. Kural: elle giriş yalnızca nakit için. *(benim kararım, eşleştirme yok)*
+
+### 6.8 Kaldırılanlar
 
 Yansıtma sistemine ait her şey silinir:
 - `content/` (`system.json`, `sources/`, `CHANGELOG.md`)
@@ -152,4 +183,5 @@ Bunlar git geçmişinde kalır. `Theme.swift` (koyu tema, kart stili) korunur ve
   - Truncgil yanıtının ayrıştırılması
   - hediye maddesinin olay-yıl başına bir kez eklenmesi
   - CSV biçimi
+  - Excel okuma, sınıflandırma tablosu, çift kayıt anahtarı, öğrenilen kural
 - Sürüm numarası (öneri: 0.3.0) ve TestFlight etiketlemesi.

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** FixYourLife'ı yansıtma sisteminden; harcama/gelir takibi, anlık kurlar, büyük alınacaklar listesi (öğle hatırlatması) ve takvim (gruplanmış bildirimler) uygulamasına dönüştürmek.
+**Goal:** FixYourLife'ı yansıtma sisteminden; Ziraat Excel'inden içe aktarılan harcama/gelir takibi, anlık kurlar, büyük alınacaklar listesi (öğle hatırlatması) ve takvim (gruplanmış bildirimler) uygulamasına dönüştürmek.
 
-**Architecture:** Tüm saf mantık (modeller, aylık özet, kuruş biçimleme, kur ayrıştırma, takvim tekrarları, bildirim gruplama, hediye maddesi, CSV) `FYLCore`'da kalır ve Linux CI'da test edilir. `App/` yalnızca SwiftUI ekranları, `AppModel` (durum + kaydetme + yeniden planlama), `Notifier` (UNUserNotificationCenter köprüsü) ve kur indirmeyi içerir. Durum tek `state.json`; mevcut `Store` deseni korunur.
+**Architecture:** Tüm saf mantık (modeller, aylık özet, kuruş biçimleme, kur ayrıştırma, takvim tekrarları, bildirim gruplama, hediye maddesi, CSV, Ziraat Excel okuma ve sınıflandırma) `FYLCore`'da kalır ve Linux CI'da test edilir. `App/` yalnızca SwiftUI ekranları, `AppModel` (durum + kaydetme + yeniden planlama), `Notifier` (UNUserNotificationCenter köprüsü) ve kur indirmeyi içerir. Durum tek `state.json`; mevcut `Store` deseni korunur.
 
 **Tech Stack:** Swift 6.1, SwiftUI (iOS 17), UserNotifications, BackgroundTasks, URLSession, XcodeGen (`project.yml`), GitHub Actions, Codemagic → TestFlight.
 
@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Dal: `plan-2-gorsel` üzerinde devam. Bilgisayarda Swift yok. Doğrulama push sonrası: `gh run list --branch plan-2-gorsel --limit 2` → `test` ve `ios-build` ikisi de `completed success`. Hata ayrıntısı: `gh run view <id> --log-failed`.
-- **`ios-build` Task 1'den Task 6'nın sonuna kadar kırmızı kalabilir** (eski ekranlar silinip yenileri Task 6'da gelir). `test` her görevin sonunda yeşil olmalı.
+- **`ios-build` Task 1'den Task 7'nin sonuna kadar kırmızı kalabilir** (eski ekranlar silinip yenileri Task 7'de gelir). `test` her görevin sonunda yeşil olmalı.
 - iOS 17.0. Yeni üçüncü taraf bağımlılık yok.
 - Bundle ID `com.meliksahhd.fixyourlife`, ASC Apple ID 6833892471, `codemagic.yaml` değişmez. Görünen ad `FixYourLife` kalır.
 - Arayüz tamamen Türkçe. Para biçimi `tr_TR`: binlik nokta, ondalık virgül, sonda " ₺" (`14.820 ₺`, `14.820,50 ₺`).
@@ -27,7 +27,7 @@
 ## Review Focus
 
 1. **Tutar yazımı:** kullanıcı `1.250,50`, `120,5`, `120` yazar; nokta binlik, virgül ondalıktır. `120.5` binlik grup kuralına uymaz → reddedilir (sessizce 1205 TL olmamalı). Test: Task 2, `testParseKurus`.
-2. **İleri tarihli kayıt:** Ekleme sayfasında tarih ayın ilerisine alınırsa "bugüne kadar harcadın" o kaydı bugünden önce saymamalı. Test: Task 2, `testFutureEntryNotCountedYet`.
+2. **Yanlış dosya:** başka bir bankanın ya da başka bir Ziraat ekranının Excel'i paylaşılırsa hiçbir kayıt eklenmemeli, kullanıcı nedenini görmeli. Test: Task 6, `testWrongFileAddsNothing`.
 3. **Sabah sınavı:** saati 08:30 olan sınavın "bugün" bildirimi 09:00'da gelirse işe yaramaz. "O gün" bildirimi `min(bildirim saati, sınav saati − 60 dk)` anında gelir. Test: Task 4, `testTimedEventSameDayFiresBeforeEvent`.
 4. **CSV'de noktalı virgül / tırnak / satır sonu içeren not** sütunları kaydırmamalı; Türkçe karakterler Excel'de bozulmamalı (UTF-8 BOM). Test: Task 2, `testCSVEscapingAndBOM`.
 5. **Eksik kur alanı:** Truncgil yanıtında `GRA` yoksa ya da sayılar `"50,3635"` metni olarak gelirse ekran boş kalmamalı; bulunanlar gösterilir. Test: Task 3, `testMissingCodeSkipped`, `testStringNumbers`.
@@ -48,8 +48,8 @@
   - `enum Flow: String, Codable { case expense, income }`
   - `struct Category: Codable, Equatable, Identifiable { var id: String; var name: String; var flow: Flow }`
     - `static let otherExpense = "diger"`, `static let otherIncome = "diger-gelir"`
-    - `static let defaults: [Category]` — sırasıyla gider: `market` Market, `yemek` Yemek / kafe, `ulasim` Ulaşım, `fatura` Fatura, `kira` Kira, `giyim` Giyim, `eglence` Eğlence, `saglik` Sağlık, `egitim` Eğitim, `diger` Diğer; gelir: `maas` Maaş, `ek-gelir` Ek gelir, `diger-gelir` Diğer
-  - `struct Entry: Codable, Equatable, Identifiable { var id: UUID; var date: Date; var flow: Flow; var amount: Kurus; var categoryId: String; var note: String }`
+    - `static let defaults: [Category]` — sırasıyla gider: `market` Market, `yemek` Yemek / kafe, `ulasim` Ulaşım, `fatura` Fatura, `abonelik` Abonelik, `kira` Kira, `giyim` Giyim, `eglence` Eğlence, `saglik` Sağlık, `egitim` Eğitim, `aktarim` Kişilere gönderilen, `kredi-karti` Kredi kartı, `banka` Banka ücreti, `diger` Diğer; gelir: `burs` Burs, `maas` Maaş, `aktarim-gelen` Kişilerden gelen, `ek-gelir` Ek gelir, `diger-gelir` Diğer
+  - `struct Entry: Codable, Equatable, Identifiable { var id: UUID; var date: Date; var flow: Flow; var amount: Kurus; var categoryId: String; var note: String; var merchant: String? = nil; var bankKey: String? = nil }` — `bankKey` yalnızca içe aktarılanlarda dolu (Task 6)
   - `struct Wish: Codable, Equatable, Identifiable { var id: UUID; var name: String; var estimate: Kurus?; var boughtAt: Date?; var paid: Kurus?; var giftKey: String? }`
   - `enum EventKind: String, Codable, CaseIterable { case birthday, special, exam, task, other }` + `var title: String` ("Doğum günü", "Özel gün", "Sınav", "Görev", "Diğer")
   - `struct CalEvent: Codable, Equatable, Identifiable { var id: UUID; var name: String; var kind: EventKind; var date: Date; var minute: Int?; var yearly: Bool; var leadDays: [Int]; var gift: Bool }` — `date` olayın günü (yıllıkta yalnızca ay/gün anlamlı), `minute` günün dakikası (yalnızca exam/task'ta dolu olabilir)
@@ -58,7 +58,7 @@
     - `static func defaultYearly(_ k: EventKind) -> Bool` — birthday/special `true`, diğerleri `false`
 - Produces (`State.swift`):
   - `struct Settings: Codable, Equatable { var wishReminder = true; var wishMinute = 750; var calendarMinute = 540 }`
-  - `struct AppState: Codable, Equatable { var categories = Category.defaults; var entries: [Entry] = []; var wishes: [Wish] = []; var events: [CalEvent] = []; var giftKeys: Set<String> = []; var settings = Settings() }`
+  - `struct AppState: Codable, Equatable { var categories = Category.defaults; var entries: [Entry] = []; var wishes: [Wish] = []; var events: [CalEvent] = []; var giftKeys: Set<String> = []; var merchantRules: [String: String] = [:]; var settings = Settings() }` — `merchantRules`: işyeri adı → kategori id (Task 6)
   - `extension AppState`: `func category(_ id: String) -> Category?`, `@discardableResult mutating func addCategory(name: String, flow: Flow) -> Category` (id `UUID().uuidString`), `mutating func renameCategory(id: String, to name: String)`, `@discardableResult mutating func deleteCategory(id: String) -> Bool`
   - `Store.load(_:) -> AppState?`, `Store.save(_:to:)` (değişmez), yeni `Store.encode(_ s: AppState) throws -> Data` (dışa aktarma için, `.prettyPrinted, .sortedKeys`, ISO8601 tarih)
   - `logicalDay` ve `questStatus` silinir.
@@ -84,7 +84,7 @@ func testDeleteCategoryMovesEntriesToOther() {
     XCTAssertNil(s.category("kira"))
     XCTAssertEqual(s.entries[0].categoryId, Category.otherExpense)
 }
-func testDeleteIncomeCategoryMovesToIncomeOther() { /* "maas" → "diger-gelir" */ }
+func testDeleteIncomeCategoryMovesToIncomeOther() { /* "burs" → "diger-gelir" */ }
 func testOtherCannotBeDeleted() {
     var s = AppState()
     XCTAssertFalse(s.deleteCategory(id: "diger")); XCTAssertFalse(s.deleteCategory(id: "diger-gelir"))
@@ -95,8 +95,8 @@ func testRenameKeepsEntryLink() {
     XCTAssertEqual(s.category("market")?.name, "Süpermarket")
 }
 func testDefaultCategories() {
-    XCTAssertEqual(Category.defaults.filter { $0.flow == .expense }.count, 10)
-    XCTAssertEqual(Category.defaults.filter { $0.flow == .income }.map(\.id), ["maas", "ek-gelir", "diger-gelir"])
+    XCTAssertEqual(Category.defaults.filter { $0.flow == .expense }.count, 14)
+    XCTAssertEqual(Category.defaults.filter { $0.flow == .income }.map(\.id), ["burs", "maas", "aktarim-gelen", "ek-gelir", "diger-gelir"])
 }
 ```
 
@@ -269,15 +269,111 @@ func testYearlyHasTwoOccurrences() { /* tek doğum günü [0] → 2 Reminder, bi
 
 ---
 
-### Task 6: Uygulama çekirdeği, bildirimler, Özet ve Hareketler
+### Task 6: Ziraat Excel okuma, sınıflandırma, içe aktarma
+
+**Files:**
+- Create: `Sources/FYLCore/Zip.swift`, `Sources/FYLCore/BankImport.swift`
+- Test: `Tests/FYLCoreTests/BankImportTests.swift`
+
+**Gizlilik:** gerçek Ziraat dosyası repoya **girmez** (repo herkese açık; dosyada ad, IBAN, kart no var). Testler aşağıdaki sentetik XML'i kullanır. Gerçek dosyanın biçimi spec §6.7'de.
+
+**Interfaces:**
+- Consumes: `Entry`, `AppState`, `Category` sabitleri (Task 1). `parseKurus` kullanılmaz (Excel'de nokta ondalık).
+- Produces:
+  - `func zipEntry(_ archive: Data, where match: (String) -> Bool, inflate: (Data, Int) -> Data?) -> Data?` — merkezi dizinden (EOCD imzası `0x06054b50`, kayıt `0x02014b50`, yerel başlık `0x04034b50`, küçük-uçlu) adı eşleşen ilk girdi; yöntem 0 ise ham bayt, 8 ise `inflate(sıkıştırılmış, açık boyut)`, diğerleri `nil`. ZIP değil ya da bozuksa `nil`. Uygulama eşleşmeyi `{ $0.hasPrefix("xl/worksheets/") && $0.hasSuffix(".xml") }` verir.
+  - `func parseSheet(_ xml: Data) -> [[String]]` — `XMLParser` (Linux için `#if canImport(FoundationXML) import FoundationXML #endif`). Eleman adının öneki atılır (`x:row` → `row`). Her `row` bir dizi; her `c` sırayla bir hücre; değer `v` ya da `is/t` metni, boş `c` → `""`. `// ponytail: paylaşılan dize tablosu (sharedStrings) yok; Ziraat kullanmıyor, başka banka gelirse eklenir`
+  - `struct BankRow: Equatable { var date: Date; var receipt: String; var text: String; var amount: Kurus; var balance: Kurus }`
+  - `func ziraatRows(_ rows: [[String]], calendar: Calendar) -> [BankRow]?` — başlık satırını (`Tarih`, `Fiş No`, `Açıklama`, `İşlem Tutarı`, `Bakiye`) arar, yoksa `nil`. Sonraki satırlardan ilk hücresi `dd.MM.yyyy` olanlar alınır; tarih o günün 12:00'si. Tutar/bakiye (`-76.5`, `400`, `-1008.23`) metinden kuruşa, kayan nokta olmadan.
+  - `func merchant(in text: String) -> String?` — `İŞYERİ:` ile `MUTABAKAT` arası, boşluklar teke indirilip kırpılmış.
+  - `func classify(_ row: BankRow, rules: [String: String]) -> (flow: Flow, categoryId: String)?` — `nil` = alınmaz. Sıra spec §6.7 tablosundaki gibi; karşılaştırmalar `tr_TR` büyük harfle. Kart harcamasında önce `rules[merchant]`, sonra işyeri adında `contains` ile şu gruplar (ilk eşleşen):
+    - `abonelik`: APPLE.COM, SPOTIFY, YOUTUBE, NETFLIX, AMAZONPRIME, DISNEY, EXXEN, BLUTV
+    - `ulasim`: BURULAS, TASIMAC, OBILET, TAKSI, PETROL, OPET, SHELL, METRO
+    - `yemek`: YEMEK, PIZZA, BURGER, DONER, DURUM, BUFE, KAHVE, COFFY, COFFEE, WAFFLE, SBX, STARBUCKS, HELVACI, RESTAURANT, CAFE, KAFE, LOKANTA
+    - `market`: BIM, SOK-, MIGROS, A101, CARREFOUR, MARKET, MRKT, GIDA, TEKEL, FIRIN
+    - `fatura`: TURKCELL, VODAFONE, TELEKOM, ELEKTRIK, DOGALGAZ
+    - `saglik`: ECZA, ROSSMANN, WATSONS, GRATIS
+    - eşleşme yok → `diger`
+  - `struct ImportResult: Equatable { var added = 0, skipped = 0, duplicates = 0 }`
+  - `extension AppState { mutating func importBank(_ rows: [BankRow], calendar: Calendar) -> ImportResult }` — anahtar `"zr|yyyy-MM-dd|<fiş>|<tutar kuruş>|<bakiye kuruş>"`. `entries`'te aynı `bankKey` varsa `duplicates`; `classify` `nil` ise `skipped`; değilse `Entry(date:, flow:, amount: abs(amount), categoryId:, note: merchant ?? sade metin, merchant:, bankKey:)` eklenir. Sade metin: `KART NO: …` ve `MUTABAKAT: …` atılır, boşluklar teke iner, kırpılır, en çok 60 karakter.
+  - `extension AppState { mutating func setCategory(entryId: UUID, categoryId: String) }` — kaydın kategorisini değiştirir; kaydın `merchant`'ı varsa `merchantRules[merchant] = categoryId` ve aynı `merchant`'lı, `bankKey`'li tüm kayıtlar da güncellenir.
+
+Testlerdeki sentetik sayfa (gerçek dosyanın biçimiyle aynı; adlar uydurma):
+
+```swift
+let sheetXML = """
+<?xml version="1.0" encoding="utf-8"?><x:worksheet xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><x:sheetData><x:row /><x:row><x:c s="0" t="str"><x:v>Sayın AD SOYAD</x:v></x:c><x:c s="0" /></x:row>
+<x:row><x:c s="1" t="str"><x:v>Tarih</x:v></x:c><x:c s="1" t="str"><x:v>Fiş No</x:v></x:c><x:c s="1" t="str"><x:v>Açıklama</x:v></x:c><x:c s="1" t="str"><x:v>İşlem Tutarı</x:v></x:c><x:c s="1" t="str"><x:v>Bakiye</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>13.11.2026</x:v></x:c><x:c t="str"><x:v>F1</x:v></x:c><x:c t="str"><x:v>POS ALIŞVERİŞ (YURTİÇİ) KART NO: 4824 **** **** 0000 İŞYERİ: BIM A.S. / L494- PAM MUTABAKAT: 0869900</x:v></x:c><x:c t="n"><x:v>-76.5</x:v></x:c><x:c t="n"><x:v>10245.82</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>13.11.2026</x:v></x:c><x:c t="str"><x:v>F2</x:v></x:c><x:c t="str"><x:v> 11111111 - 5003 Nolu Hesaptan, Ziraat Mobil Virman</x:v></x:c><x:c t="n"><x:v>400</x:v></x:c><x:c t="n"><x:v>10322.32</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>12.11.2026</x:v></x:c><x:c t="str"><x:v>F3</x:v></x:c><x:c t="str"><x:v>0014HOHH261986907 Referanslı Havale - BSMV Tahsilatı </x:v></x:c><x:c t="n"><x:v>-0.2</x:v></x:c><x:c t="n"><x:v>9922.12</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>12.11.2026</x:v></x:c><x:c t="str"><x:v>F3</x:v></x:c><x:c t="str"><x:v> ALİ VELİ Ziraat Mobil Havale</x:v></x:c><x:c t="n"><x:v>-250</x:v></x:c><x:c t="n"><x:v>9922.32</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>06.11.2026</x:v></x:c><x:c t="str"><x:v>F4</x:v></x:c><x:c t="str"><x:v>Gönd: ÖRNEK SANAYİ A.Ş. AD SOYAD BURS 0032-T.EKONOMİ BANKASI A.S.</x:v></x:c><x:c t="n"><x:v>4000</x:v></x:c><x:c t="n"><x:v>14172.32</x:v></x:c></x:row>
+<x:row><x:c t="str"><x:v>03.11.2026</x:v></x:c><x:c t="str"><x:v>F5</x:v></x:c><x:c t="str"><x:v>KK TAHSİLAT FİŞ NO:1234567</x:v></x:c><x:c t="n"><x:v>-1008.23</x:v></x:c><x:c t="n"><x:v>10172.32</x:v></x:c></x:row>
+</x:sheetData></x:worksheet>
+"""
+```
+
+- [ ] **Step 1: Failing testler**
+
+```swift
+func rows() -> [BankRow] { ziraatRows(parseSheet(Data(sheetXML.utf8)), calendar: cal)! }
+
+func testParsesSheet() {
+    let r = rows()
+    XCTAssertEqual(r.count, 6)
+    XCTAssertEqual(r[0].date, d("2026-11-13 12:00")); XCTAssertEqual(r[0].receipt, "F1")
+    XCTAssertEqual(r[0].amount, -7650); XCTAssertEqual(r[0].balance, 1024582); XCTAssertEqual(r[5].amount, -100823)
+}
+func testMerchant() { XCTAssertEqual(merchant(in: "POS ALIŞVERİŞ İŞYERİ: UGURLAR MARKET  MUTABAKAT: 1"), "UGURLAR MARKET") }
+func testClassifyTable() {
+    let got = rows().map { classify($0, rules: [:]).map { "\($0.flow.rawValue):\($0.categoryId)" } ?? "atla" }
+    XCTAssertEqual(got, ["expense:market", "atla", "expense:banka", "expense:aktarim", "income:burs", "expense:kredi-karti"])
+}
+func testKeywordGroups() {
+    // İŞYERİ: TRENDYOL YEMEK → yemek · SBX BUR ZAFER PLZ → yemek · BURULAS → ulasim · APPLE.COM/BILL → abonelik
+    // NKOLAY/DIRK ROSSMANN → saglik · VEZIRSAH → diger
+    // "Gönd: AYŞE YILMAZ 0015-… FAST işlemi" +170 → income:aktarim-gelen · "TURKCELL/Tel No: 1 /Fatura No: 2" -677 → expense:fatura
+    // "KARTNO:… SATIŞ YD IADE …" +16.33 → atla · "Bankamız KK Nakit Avans …" +1203 → atla · "MESAJ ÜCRETİ TUTARI" -0.37 → expense:banka
+}
+func testLearnedRuleWins() { /* rules ["VEZIRSAH": "yemek"] → expense:yemek */ }
+func testImportIsIdempotent() {
+    var s = AppState(); let r = rows()
+    XCTAssertEqual(s.importBank(r, calendar: cal), ImportResult(added: 5, skipped: 1, duplicates: 0))
+    XCTAssertEqual(s.importBank(r, calendar: cal), ImportResult(added: 0, skipped: 1, duplicates: 5))
+    XCTAssertEqual(s.entries.count, 5)
+    XCTAssertEqual(s.entries.first { $0.categoryId == "market" }?.note, "BIM A.S. / L494- PAM")
+    XCTAssertEqual(s.entries.first { $0.categoryId == "aktarim" }?.note, "ALİ VELİ Ziraat Mobil Havale")
+}
+func testSetCategoryLearnsAndUpdatesSiblings() {
+    // iki içe aktarılmış "VEZIRSAH" kaydı + merchant'ı "VEZIRSAH" ama bankKey'i nil bir elle kayıt;
+    // birini "yemek" yap → iki içe aktarılmış da yemek, merchantRules["VEZIRSAH"] == "yemek", elle kayıt değişmez
+}
+func testWrongFileAddsNothing() {
+    XCTAssertNil(ziraatRows(parseSheet(Data("<a><row><c><v>x</v></c></row></a>".utf8)), calendar: cal))
+    XCTAssertNil(zipEntry(Data("PK değil".utf8), where: { _ in true }, inflate: { _, _ in nil }))
+}
+func testStoredZipEntry() {
+    // Test içinde yöntem-0 (sıkıştırmasız) tek girdili ZIP baytları üret: yerel başlık + veri + merkezi dizin + EOCD (CRC 0; okuyucu doğrulamaz)
+    // zipEntry(zip, where: { $0 == "xl/worksheets/sheet.xml" }, inflate: { _, _ in nil }) == içerik; where hiçbirine uymazsa nil
+}
+```
+
+- [ ] **Step 2: Push, kırmızı**
+- [ ] **Step 3: `Zip.swift` ve `BankImport.swift`'i yaz**
+- [ ] **Step 4: Push, yeşil**
+- [ ] **Step 5: Commit** — `feat(core): Ziraat Excel içe aktarma, sınıflandırma, öğrenilen kurallar`
+
+---
+
+### Task 7: Uygulama çekirdeği, bildirimler, Özet, Hareketler ve içe aktarma
 
 **Files:**
 - Modify: `App/FixYourLifeApp.swift` (yeniden yaz), `App/Notifications.swift` (yeniden yaz), `App/Theme.swift`, `project.yml`
-- Create: `App/SummaryView.swift`, `App/EntriesView.swift` (liste + `EntryForm`)
+- Create: `App/SummaryView.swift`, `App/EntriesView.swift` (liste + `EntryForm`), `App/Inflate.swift`
 - Test: yok (iOS); doğrulama `ios-build`
 
 **Interfaces:**
-- Consumes: Task 1–5'in tamamı.
+- Consumes: Task 1–6'nın tamamı.
 - Produces (`AppModel`, `@MainActor final class: ObservableObject`, `static let shared`):
   - `@Published var state: AppState`, `@Published var rates: RatesSnapshot?`, `@Published var ratesFailed = false`, `@Published var tab: AppTab` (`enum AppTab: Hashable { case summary, entries, wishes, calendar }`)
   - `func update(_ change: (inout AppState) -> Void)` — yüklenmemişse (`loaded_ == false`) hiçbir şey yapmaz; değiştirir, `save()`, `reschedule()`.
@@ -291,30 +387,43 @@ Akış:
 - `init`: `Store.load`; `nil` ise `loaded_ = false` (mevcut davranış, kaydetme yok). `UNUserNotificationCenter.current().delegate = notifier`.
 - Sahne `.active`: yeniden yükleme denemesi, bildirim izni iste (`.alert, .sound, .badge`, ilk açılışta sistem sorar), `reschedule()`, `Task { await refreshRates() }`. `.background`: `save()`, `scheduleRefresh()`.
 - `.backgroundTask(.appRefresh(refreshTaskId))`: `scheduleRefresh()`, `reschedule()`, `await applying?.value` (iOS askıya almadan bildirimler kurulmuş olsun).
-- Kök: `TabView(selection: $model.tab)` — Özet (`chart.pie`), Hareketler (`list.bullet`). Alınacaklar (`bag`) ve Takvim (`calendar`) sekmelerini Task 7 ekler; bu görevde yer tutucu yazma.
+- Kök: `TabView(selection: $model.tab)` — Özet (`chart.pie`), Hareketler (`list.bullet`). Alınacaklar (`bag`) ve Takvim (`calendar`) sekmelerini Task 8 ekler; bu görevde yer tutucu yazma.
 
 Ekranlar (spec §6.1'deki metin ve düzen aynen):
-- `SummaryView`: `NavigationStack`, başlık "Özet", sağ üst dişli → `SettingsView` (Task 7; bu görevde dişliyi koyma). Üç kur kartı (Dolar/Euro/Gram altın; `formatRate`, `formatChange`, `up`/`down` renk; kur yoksa "—"), altında "Güncelleme HH:mm" (`ratesFailed` iken `opacity(0.5)`), `.refreshable { await refreshRates() }`. Harcama kartı ("Kasım · bugüne kadar harcadın", `formatTL(spent)`; "Geçen ay aynı güne kadar X · %N fazla/az" — fazla `down`, az `up`, `changePercent == nil` ise yüzde kısmı yok; "Geçen ayın tamamı X · Gelir bu ay Y"). "En çok nereye" kartı: `top`, her satırda ad, tutar ve en büyüğe göre oranlı yatay çubuk. Altta `PrimaryButtonStyle` "+ Harcama / gelir ekle" → `EntryForm` sayfası.
+- `SummaryView`: `NavigationStack`, başlık "Özet", sağ üst dişli → `SettingsView` (Task 8; bu görevde dişliyi koyma). Üç kur kartı (Dolar/Euro/Gram altın; `formatRate`, `formatChange`, `up`/`down` renk; kur yoksa "—"), altında "Güncelleme HH:mm" (`ratesFailed` iken `opacity(0.5)`), `.refreshable { await refreshRates() }`. Harcama kartı ("Kasım · bugüne kadar harcadın", `formatTL(spent)`; "Geçen ay aynı güne kadar X · %N fazla/az" — fazla `down`, az `up`, `changePercent == nil` ise yüzde kısmı yok; "Geçen ayın tamamı X · Gelir bu ay Y"). "En çok nereye" kartı: `top`, her satırda ad, tutar ve en büyüğe göre oranlı yatay çubuk. Altta `PrimaryButtonStyle` "+ Harcama / gelir ekle" → `EntryForm` sayfası.
 - `EntryForm(entry: Entry?)`: Gider/Gelir `Picker(.segmented)`, tutar `TextField` + `.keyboardType(.decimalPad)` + `@FocusState` otomatik odak, kategori yatay kaydırılan çipler (seçili akışın kategorileri), not, `DatePicker` (varsayılan şimdi). Kaydet `parseKurus` `nil` ise pasif. Yeni kayıt ekler, mevcut olanı yerinde günceller.
 - `EntriesView`: `List`, aylara göre `Section` (başlık "Kasım 2026", `tr_TR`), yeniden eskiye. Satır: kategori adı, not (ikincil), tutar (gelir `up` renkli ve "+" önekli). Dokun → `EntryForm(entry:)`, sola kaydır → sil.
 
-`project.yml`: `BGTaskSchedulerPermittedIdentifiers: [com.meliksahhd.fixyourlife.refresh]`, `MARKETING_VERSION: 0.3.0`.
+İçe aktarma:
+- `App/Inflate.swift`: `func inflateRaw(_ data: Data, size: Int) -> Data?` — `import Compression`, `compression_decode_buffer(…, COMPRESSION_ZLIB)` (Apple'ın ZLIB'i ham deflate; Task 6'daki `zipEntry`'ye verilir).
+- `AppModel.importBank(_ url: URL)`: güvenlikli erişim (`startAccessingSecurityScopedResource`), `Data(contentsOf:)`, `zipEntry(… inflate: inflateRaw)`, `parseSheet`, `ziraatRows`. Herhangi biri `nil` ise `importMessage = "Bu dosya Ziraat hesap hareketleri gibi görünmüyor"`; değilse `update { result = $0.importBank(rows, calendar: .current) }`, `importMessage = "\(added) yeni hareket eklendi · \(skipped) atlandı · \(duplicates) zaten vardı"`, `tab = .entries`. `@Published var importMessage: String?` köke `.alert` ile bağlanır.
+- Giriş noktaları: kökte `.onOpenURL { model.importBank($0) }` (Ziraat Mobil → Paylaş → FixYourLife) ve Hareketler araç çubuğunda "İçe aktar" → `.fileImporter(allowedContentTypes: [UTType(filenameExtension: "xlsx")!])`.
+- `EntryForm`: içe aktarılmış (`bankKey != nil`) kaydın kategorisi değişip kaydedilince `state.setCategory(entryId:categoryId:)` çağrılır (kural öğrenilir). İçe aktarılmış kayıtta tutar ve tarih salt okunur.
+
+`project.yml`: `BGTaskSchedulerPermittedIdentifiers: [com.meliksahhd.fixyourlife.refresh]`, `MARKETING_VERSION: 0.3.0`, `LSSupportsOpeningDocumentsInPlace: false` ve
+
+```yaml
+CFBundleDocumentTypes:
+  - CFBundleTypeName: Excel
+    LSHandlerRank: Alternate
+    LSItemContentTypes: [org.openxmlformats.spreadsheetml.sheet]
+```
 
 - [ ] **Step 1: `Theme.swift`, `project.yml`, `Notifications.swift`, `FixYourLifeApp.swift`'i yaz**
 - [ ] **Step 2: `SummaryView.swift`, `EntriesView.swift`'i yaz**
 - [ ] **Step 3: Push, `test` ve `ios-build` yeşil** (ilk kez ikisi birden)
-- [ ] **Step 4: Commit** — `feat(app): uygulama çekirdeği, bildirimler, Özet ve Hareketler`
+- [ ] **Step 4: Commit** — `feat(app): uygulama çekirdeği, bildirimler, Özet, Hareketler, Ziraat içe aktarma`
 
 ---
 
-### Task 7: Alınacaklar, Takvim ve Ayarlar ekranları
+### Task 8: Alınacaklar, Takvim ve Ayarlar ekranları
 
 **Files:**
 - Create: `App/WishesView.swift`, `App/CalendarView.swift` (liste + `EventForm`), `App/SettingsView.swift`
 - Modify: `App/FixYourLifeApp.swift` (iki sekmeyi ekle), `App/SummaryView.swift` (dişli)
 
 **Interfaces:**
-- Consumes: `AppModel.update`, Task 1–5 fonksiyonları.
+- Consumes: `AppModel.update`, Task 1–6 fonksiyonları.
 
 Ekranlar (spec §6.3–6.5):
 - `WishesView`: üstte "Bekleyen ≈ `formatTL(pendingTotal)`" (toplam 0 ise yok). Bekleyenler: ad + tahmini fiyat; dokun → düzenle (ad, tahmini fiyat), kaydır → sil, sağda "Aldım" düğmesi → sayfa: ödenen tutar (tahminle önceden dolu, boş bırakılabilir), gider kategorisi çipleri (varsayılan Diğer), Kaydet → `state.buy(...)`. "Alındı" bölümü `DisclosureGroup`, varsayılan kapalı, satırda ödenen tutar ve tarih. Sağ üst "+" → yeni madde.
@@ -328,11 +437,11 @@ Ekranlar (spec §6.3–6.5):
 
 ---
 
-### Task 8: Belgeler ve sürüm
+### Task 9: Belgeler ve sürüm
 
 **Files:**
 - Modify: `CLAUDE.md` (yeni amaç, durum; "Makale ekleme akışı" kaldırılır), `docs/kurulum.md` (Unsplash ve kurulum günü bölümleri kaldırılır; Apple/Codemagic adımları kalır)
 
 - [ ] **Step 1: İki belgeyi güncelle, commit** — `docs: para/liste/takvim dönüşümü`
 - [ ] **Step 2: Kullanıcıya sor, onay gelirse** `git tag build-3 && git push origin plan-2-gorsel build-3` (Codemagic kotası harcar)
-- [ ] **Step 3: Codemagic derlemesi bitince TestFlight'ta 0.3.0'ın göründüğünü doğrula** ve kullanıcıya cihaz kontrol listesini ver: ilk açılışta bildirim izni; bir harcama ekle → Özet'te görünür; kurlar dolu; yarına bir olay ekle → ertesi gün 09:00 bildirimi; bir madde ekle → 12:30 bildirimi; Ayarlar → dışa aktarılan CSV Excel'de düzgün açılır.
+- [ ] **Step 3: Codemagic derlemesi bitince TestFlight'ta 0.3.0'ın göründüğünü doğrula** ve kullanıcıya cihaz kontrol listesini ver: ilk açılışta bildirim izni; Ziraat Mobil → Hesap Hareketleri → Paylaş → Excel → FixYourLife → özet mesajı; aynı dosya ikinci kez → "0 yeni"; bir işyerinin kategorisini düzelt → aynı işyerinin diğer kayıtları da değişir; bir nakit harcama ekle → Özet'te görünür; kurlar dolu; yarına bir olay ekle → ertesi gün 09:00 bildirimi; bir madde ekle → 12:30 bildirimi; Ayarlar → dışa aktarılan CSV Excel'de düzgün açılır.

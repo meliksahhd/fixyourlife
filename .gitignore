@@ -4,3 +4,7 @@ content/sources/
 .superpowers/
 .DS_Store
 Config/Info.plist
+
+# Banka ekstreleri (kişisel veri)
+*.pdf
+ekstre/
