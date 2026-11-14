@@ -8,3 +8,4 @@ Config/Info.plist
 # Banka ekstreleri (kişisel veri)
 *.pdf
 ekstre/
+*.xlsx
