@@ -54,6 +54,36 @@ final class BankImportTests: XCTestCase {
         XCTAssertEqual(kind("MESAJ ÜCRETİ TUTARI", -37), "expense:banka")
     }
 
+    func testTurkishLettersAndCase() {
+        XCTAssertEqual(kind(pos("ÖZ DÖNER"), -9000), "expense:yemek")
+        XCTAssertEqual(kind(pos("ŞOK-4211 NILUFER"), -9000), "expense:market")
+        XCTAssertEqual(kind(pos("Netflix.com"), -19999), "expense:abonelik")
+        XCTAssertEqual(kind("EFT KOMISYONU", -500), "expense:banka")
+        XCTAssertEqual(kind("kk tahsilat", -1000), "expense:kredi-karti")
+        XCTAssertEqual(merchant(in: "POS ISYERI: ABC  mutabakat: 1"), "ABC")
+    }
+
+    func testIadeAndBursAreWords() {
+        XCTAssertEqual(kind(pos("MEDIADEPO"), -9000), "expense:diger")
+        XCTAssertEqual(kind("KARTNO:4824 SATIŞ YD İADESİ", 1633), "atla")
+        XCTAssertEqual(kind("Gönd: X BURSA SUBE", 50000), "income:aktarim-gelen")
+        XCTAssertEqual(kind("Gönd: X burs ödemesi", 50000), "income:burs")
+    }
+
+    func testRoundsExtraDecimals() {
+        XCTAssertEqual(decimalKurus("-76.499"), -7650)
+        XCTAssertEqual(decimalKurus("-76.494"), -7649)
+        XCTAssertEqual(decimalKurus("0.005"), 1)
+        XCTAssertEqual(decimalKurus("-0.2"), -20)
+        XCTAssertNil(decimalKurus("1E-2")); XCTAssertNil(decimalKurus("76.")); XCTAssertNil(decimalKurus("-"))
+    }
+
+    func testInvalidRuleIgnored() {
+        var s = AppState(); s.merchantRules = ["BURULAS": "burs", "VEZIRSAH": "silinmis"]
+        _ = s.importBank([row(pos("BURULAS"), -2000, receipt: "A"), row(pos("VEZIRSAH"), -8000, receipt: "B")], calendar: cal)
+        XCTAssertEqual(s.entries.map(\.categoryId), ["ulasim", "diger"])
+    }
+
     func testLearnedRuleWins() {
         XCTAssertEqual(kind(pos("VEZIRSAH"), -8000, rules: ["VEZIRSAH": "yemek"]), "expense:yemek")
     }
@@ -81,6 +111,17 @@ final class BankImportTests: XCTestCase {
         XCTAssertEqual(s.entries.map(\.categoryId), ["yemek", "yemek", "diger"])
         XCTAssertEqual(s.merchantRules["VEZIRSAH"], "yemek")
         XCTAssertEqual(s.entries[2], manual)
+    }
+
+    func testSetCategoryKeepsFlow() {
+        var s = AppState()
+        _ = s.importBank([row(pos("VEZIRSAH"), -8000, receipt: "A"), row(pos("VEZIRSAH"), 5000, receipt: "B")], calendar: cal)
+        XCTAssertEqual(s.entries.map(\.categoryId), ["diger", "aktarim-gelen"])
+        s.setCategory(entryId: s.entries[0].id, categoryId: "yemek")
+        XCTAssertEqual(s.entries.map(\.categoryId), ["yemek", "aktarim-gelen"])
+        s.setCategory(entryId: s.entries[1].id, categoryId: "ek-gelir")
+        XCTAssertEqual(s.entries.map(\.categoryId), ["yemek", "ek-gelir"])
+        XCTAssertEqual(s.merchantRules, ["VEZIRSAH": "yemek"])
     }
 
     func testWrongFileAddsNothing() {

@@ -37,16 +37,15 @@ public struct BankRow: Equatable {
     }
 }
 
-/// "-76.5" / "400" / "-1008.23" → kuruş, kayan nokta olmadan.
+/// "-76.5" / "400" / "-1008.23" → kuruş, kayan nokta olmadan; 2'den çok ondalık yarım sıfırdan uzağa yuvarlanır.
 func decimalKurus(_ text: String) -> Kurus? {
     var t = Substring(text.trimmingCharacters(in: .whitespaces)); let neg = t.hasPrefix("-")
     if neg { t = t.dropFirst() }
     let parts = t.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
     func digits(_ s: Substring) -> Bool { !s.isEmpty && s.utf8.allSatisfy { $0 >= 48 && $0 <= 57 } }
-    guard digits(parts[0]), parts[0].count <= 15, parts.count == 1 || (digits(parts[1]) && parts[1].count <= 2),
-          let tl = Int(parts[0]), let k = Int(parts.count == 2 ? parts[1] + String(repeating: "0", count: 2 - parts[1].count) : "0")
-    else { return nil }
-    return (neg ? -1 : 1) * (tl * 100 + k)
+    guard digits(parts[0]), parts[0].count <= 15, parts.count == 1 || digits(parts[1]), let tl = Int(parts[0]) else { return nil }
+    let frac = parts.count == 2 ? parts[1].utf8.map { Int($0) - 48 } + [0, 0, 0] : [0, 0, 0]
+    return (neg ? -1 : 1) * (tl * 100 + frac[0] * 10 + frac[1] + (frac[2] >= 5 ? 1 : 0))
 }
 
 /// Başlık satırından sonraki `dd.MM.yyyy` tarihli satırlar; başlık yoksa nil (yanlış dosya).
@@ -67,14 +66,16 @@ private func squeeze<S: StringProtocol>(_ s: S) -> String { s.split(whereSeparat
 
 /// `İŞYERİ:` ile `MUTABAKAT` arası.
 public func merchant(in text: String) -> String? {
-    guard let a = text.range(of: "İŞYERİ:") else { return nil }
-    let rest = text[a.upperBound...], end = rest.range(of: "MUTABAKAT")?.lowerBound ?? rest.endIndex
+    let o: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
+    guard let a = text.range(of: "İŞYERİ:", options: o) else { return nil }
+    let rest = text[a.upperBound...], end = rest.range(of: "MUTABAKAT", options: o)?.lowerBound ?? rest.endIndex
     let m = squeeze(rest[..<end])
     return m.isEmpty ? nil : m
 }
 
 private let trLocale = Locale(identifier: "tr_TR")
-private func upper(_ s: String) -> String { s.uppercased(with: trLocale) }
+/// tr_TR büyük harf + aksan katlama: "Öz Döner" → "OZ DONER", "Komisyon" → "KOMISYON". Anahtarlar ASCII yazılır.
+private func norm(_ s: String) -> String { s.uppercased(with: trLocale).folding(options: .diacriticInsensitive, locale: trLocale) }
 
 private let keywordGroups: [(String, [String])] = [
     ("abonelik", ["APPLE.COM", "SPOTIFY", "YOUTUBE", "NETFLIX", "AMAZONPRIME", "DISNEY", "EXXEN", "BLUTV"]),
@@ -88,18 +89,18 @@ private let keywordGroups: [(String, [String])] = [
 
 /// Spec §6.7 tablosu, ilk eşleşen. nil = alınmaz.
 public func classify(_ row: BankRow, rules: [String: String]) -> (flow: Flow, categoryId: String)? {
-    let t = upper(row.text)
-    func has(_ keys: String...) -> Bool { keys.contains { t.contains(upper($0)) } }
-    if has("Nolu Hesaba", "Nolu Hesaptan", "IADE", "İADE", "KK Nakit Avans") || row.amount == 0 { return nil }
-    if has("KK TAHSİLAT") { return (.expense, "kredi-karti") }
-    if has("BSMV", "Komisyon", "MESAJ ÜCRETİ") { return (.expense, "banka") }
+    let t = norm(row.text), words = t.split { !$0.isLetter && !$0.isNumber }
+    func has(_ keys: String...) -> Bool { keys.contains { t.contains($0) } }
+    if has("NOLU HESABA", "NOLU HESAPTAN", "KK NAKIT AVANS") || words.contains(where: { $0.hasPrefix("IADE") }) || row.amount == 0 { return nil }
+    if has("KK TAHSILAT") { return (.expense, "kredi-karti") }
+    if has("BSMV", "KOMISYON", "MESAJ UCRETI") { return (.expense, "banka") }
     if row.amount < 0, let m = merchant(in: row.text) {
-        let um = upper(m)
+        let um = norm(m)
         return (.expense, rules[m] ?? keywordGroups.first { g in g.1.contains { um.contains($0) } }?.0 ?? Category.otherExpense)
     }
-    if has("Fatura No") { return (.expense, "fatura") }
-    if row.amount < 0 { return (.expense, has("FAST", "Havale") ? "aktarim" : Category.otherExpense) }
-    return (.income, has("BURS") ? "burs" : "aktarim-gelen")
+    if has("FATURA NO") { return (.expense, "fatura") }
+    if row.amount < 0 { return (.expense, has("FAST", "HAVALE") ? "aktarim" : Category.otherExpense) }
+    return (.income, words.contains("BURS") ? "burs" : "aktarim-gelen")
 }
 
 public struct ImportResult: Equatable {
@@ -110,12 +111,13 @@ public struct ImportResult: Equatable {
 extension AppState {
     public mutating func importBank(_ rows: [BankRow], calendar: Calendar) -> ImportResult {
         var res = ImportResult(), keys = Set(entries.compactMap(\.bankKey))
+        let rules = merchantRules.filter { category($0.value)?.flow == .expense }
         for r in rows {
             let c = calendar.dateComponents([.year, .month, .day], from: r.date)
             func p2(_ n: Int?) -> String { let n = n ?? 0; return n < 10 ? "0\(n)" : "\(n)" }
             let key = "zr|\(c.year ?? 0)-\(p2(c.month))-\(p2(c.day))|\(r.receipt)|\(r.amount)|\(r.balance)"
             if keys.contains(key) { res.duplicates += 1; continue }
-            guard let k = classify(r, rules: merchantRules) else { res.skipped += 1; continue }
+            guard let k = classify(r, rules: rules) else { res.skipped += 1; continue }
             let m = merchant(in: r.text)
             let plain = squeeze(r.text.replacingOccurrences(of: #"KART ?NO ?:[\s\d*]*"#, with: " ", options: .regularExpression)
                 .replacingOccurrences(of: #"MUTABAKAT ?:\s*\S*"#, with: " ", options: .regularExpression))
@@ -126,12 +128,16 @@ extension AppState {
         return res
     }
 
-    /// Kategoriyi değiştirir; işyeri varsa kuralı öğrenir ve o işyerinin içe aktarılmış tüm kayıtlarını günceller.
+    /// Kategoriyi değiştirir; işyeri varsa aynı işyerinin aynı akıştaki içe aktarılmış kayıtlarını da günceller,
+    /// giderse kuralı öğrenir.
     public mutating func setCategory(entryId: UUID, categoryId: String) {
         guard let i = entries.firstIndex(where: { $0.id == entryId }) else { return }
         entries[i].categoryId = categoryId
         guard let m = entries[i].merchant else { return }
-        merchantRules[m] = categoryId
-        for j in entries.indices where entries[j].merchant == m && entries[j].bankKey != nil { entries[j].categoryId = categoryId }
+        let flow = entries[i].flow
+        if flow == .expense { merchantRules[m] = categoryId }
+        for j in entries.indices where entries[j].merchant == m && entries[j].bankKey != nil && entries[j].flow == flow {
+            entries[j].categoryId = categoryId
+        }
     }
 }
