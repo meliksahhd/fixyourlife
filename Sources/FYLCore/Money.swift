@@ -66,7 +66,7 @@ public func csv(_ state: AppState, calendar: Calendar) -> String {
     let f = DateFormatter()
     f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = calendar.timeZone; f.dateFormat = "yyyy-MM-dd HH:mm"
     func q(_ s: String) -> String {
-        s.contains(where: { ";\"\n\r".contains($0) }) ? "\"" + s.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : s
+        s.unicodeScalars.contains(where: { ";\"\n\r".unicodeScalars.contains($0) }) ? "\"" + s.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : s
     }
     let rows = state.entries.sorted { $0.date < $1.date }.map { x -> String in
         let c = x.amount % 100
