@@ -13,7 +13,7 @@ public func parseKurus(_ text: String) -> Kurus? {
     return tl * 100 + k
 }
 
-private func grouped(_ n: Int) -> String {
+func grouped(_ n: Int) -> String {
     var s = "", r = String(n)
     while r.count > 3 { s = "." + r.suffix(3) + s; r.removeLast(3) }
     return r + s
