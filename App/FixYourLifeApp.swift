@@ -135,6 +135,8 @@ struct FixYourLifeApp: App {
             TabView(selection: $model.tab) {
                 SummaryView().tabItem { Label("Özet", systemImage: "chart.pie") }.tag(AppTab.summary)
                 EntriesView().tabItem { Label("Hareketler", systemImage: "list.bullet") }.tag(AppTab.entries)
+                WishesView().tabItem { Label("Alınacaklar", systemImage: "cart") }.tag(AppTab.wishes)
+                CalendarView().tabItem { Label("Takvim", systemImage: "calendar") }.tag(AppTab.calendar)
             }
             .environmentObject(model)
             .environment(\.locale, Locale(identifier: "tr_TR"))

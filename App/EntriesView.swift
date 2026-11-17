@@ -63,7 +63,7 @@ struct EntryForm: View {
     init(entry: Entry?) {
         self.entry = entry
         _flow = State(initialValue: entry?.flow ?? .expense)
-        _amount = State(initialValue: entry.map { formatTL($0.amount).replacingOccurrences(of: " ₺", with: "") } ?? "")
+        _amount = State(initialValue: entry.map { amountText($0.amount) } ?? "")
         _categoryId = State(initialValue: entry?.categoryId ?? Category.otherExpense)
         _note = State(initialValue: entry?.note ?? "")
         _date = State(initialValue: entry?.date ?? Date())
@@ -87,17 +87,7 @@ struct EntryForm: View {
                 } else {
                     TextField("Tutar (₺)", text: $amount).keyboardType(.decimalPad).focused($focused)
                 }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(model.state.categories.filter { $0.flow == flow }) { c in
-                            Button(c.name) { categoryId = c.id }
-                                .buttonStyle(.plain).font(.subheadline)
-                                .padding(.horizontal, 12).padding(.vertical, 8)
-                                .foregroundStyle(c.id == categoryId ? Theme.bg : Theme.text)
-                                .background(c.id == categoryId ? Theme.tint : Theme.line, in: Capsule())
-                        }
-                    }
-                }
+                CategoryChips(categories: model.state.categories.filter { $0.flow == flow }, selection: $categoryId)
                 TextField("Not", text: $note)
                 if imported {
                     LabeledContent("Tarih", value: date.formatted(.dateTime.day().month(.wide).year().locale(Locale(identifier: "tr_TR"))))
@@ -136,5 +126,28 @@ struct EntryForm: View {
             }
         }
         dismiss()
+    }
+}
+
+/// Düzenleme alanı için "1.250,50" (₺ işaretsiz).
+func amountText(_ k: Kurus) -> String { formatTL(k).replacingOccurrences(of: " ₺", with: "") }
+
+/// Yatay kategori çipleri.
+struct CategoryChips: View {
+    let categories: [FYLCore.Category]
+    @Binding var selection: String
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(categories) { c in
+                    Button(c.name) { selection = c.id }
+                        .buttonStyle(.plain).font(.subheadline)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .foregroundStyle(c.id == selection ? Theme.bg : Theme.text)
+                        .background(c.id == selection ? Theme.tint : Theme.line, in: Capsule())
+                }
+            }
+        }
     }
 }

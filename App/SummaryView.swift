@@ -22,6 +22,7 @@ struct SummaryView: View {
             .background(Theme.bg)
             .navigationTitle("Özet")
             .refreshable { await model.refreshRates() }
+            .toolbar { NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") } }
             .sheet(isPresented: $adding) { EntryForm(entry: nil).environmentObject(model) }
         }
     }
