@@ -11,8 +11,6 @@ targets:
     platform: iOS
     sources:
       - App
-      - path: content/system.json
-        buildPhase: resources
     dependencies:
       - package: FYLCore
         product: FYLCore

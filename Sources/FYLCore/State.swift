@@ -1,63 +1,47 @@
 import Foundation
 
-/// Kurulum günü sentezinin kullanıcıya ait cümleleri (yalnızca cihazda kalır).
-public struct Profile: Codable, Equatable {
-    public var identity, antiVision, vision, enemy, yearGoal, monthProject, whyStuck: String
-    public var quests: [String]; public var constraints: [String]; public var monthStart: Date
-
-    public init(identity: String, antiVision: String, vision: String, enemy: String, yearGoal: String,
-                monthProject: String, whyStuck: String, quests: [String], constraints: [String], monthStart: Date) {
-        self.identity = identity; self.antiVision = antiVision; self.vision = vision; self.enemy = enemy
-        self.yearGoal = yearGoal; self.monthProject = monthProject; self.whyStuck = whyStuck
-        self.quests = quests; self.constraints = constraints; self.monthStart = monthStart
-    }
-}
-
 public struct Settings: Codable, Equatable {
-    public var morning = "10:00"; public var evening = "23:30"
+    public var wishReminder = true; public var wishMinute = 750; public var calendarMinute = 540
     public init() {}
-}
-
-public enum EventKind: String, Codable { case sent, answered, note }
-
-public struct Event: Codable, Equatable {
-    public var date: Date; public var kind: EventKind; public var nodeId: String
-    public var tag: String?; public var text: String?; public var questIndex: Int?; public var itemId: String?
-    public var photoId: String?
-    public init(date: Date, kind: EventKind, nodeId: String, tag: String? = nil, text: String? = nil,
-                questIndex: Int? = nil, itemId: String? = nil, photoId: String? = nil) {
-        self.date = date; self.kind = kind; self.nodeId = nodeId; self.tag = tag
-        self.text = text; self.questIndex = questIndex; self.itemId = itemId; self.photoId = photoId
-    }
 }
 
 public struct AppState: Codable, Equatable {
-    public var profile: Profile? = nil; public var settings = Settings()
-    public var setupDate: Date? = nil      // planlanmış kurulum günü (gün başı); sentez kaydedilince nil
-    public var loopStart: Date? = nil      // günlük döngünün başladığı mantıksal gün
-    public var setupNotes: [String: String] = [:]  // sabah protokolü notları, anahtar "grup.soru" ("0.2")
-    public var events: [Event] = []; public var lastPlan: [PlannedItem] = []; public var chainUntil: Date? = nil
+    public var categories = Category.defaults; public var entries: [Entry] = []
+    public var wishes: [Wish] = []; public var events: [CalEvent] = []
+    public var giftKeys: Set<String> = []
+    public var merchantRules: [String: String] = [:]   // işyeri adı → kategori id
+    public var settings = Settings()
     public init() {}
 }
 
-/// Gün 04:00'te döner: startOfDay(date − 4 saat).
-public func logicalDay(_ date: Date, calendar: Calendar) -> Date {
-    calendar.startOfDay(for: date.addingTimeInterval(-4 * 3600))
-}
+extension AppState {
+    public func category(_ id: String) -> Category? { categories.first { $0.id == id } }
 
-public func questStatus(_ state: AppState, on day: Date, calendar: Calendar) -> [String?] {
-    guard let quests = state.profile?.quests else { return [] }
-    return quests.indices.map { i in
-        state.events
-            .filter { $0.kind == .answered && ($0.nodeId == "quest_check" || $0.nodeId == "board")
-                && $0.questIndex == i && logicalDay($0.date, calendar: calendar) == day }
-            .max { $0.date < $1.date }?.tag
+    @discardableResult public mutating func addCategory(name: String, flow: Flow) -> Category {
+        let c = Category(id: UUID().uuidString, name: name, flow: flow); categories.append(c); return c
+    }
+    public mutating func renameCategory(id: String, to name: String) {
+        if let i = categories.firstIndex(where: { $0.id == id }) { categories[i].name = name }
+    }
+    /// "Diğer" silinemez; silinen kategorinin kayıtları aynı akışın "Diğer"ine taşınır.
+    @discardableResult public mutating func deleteCategory(id: String) -> Bool {
+        guard id != Category.otherExpense, id != Category.otherIncome, let c = category(id) else { return false }
+        let other = c.flow == .expense ? Category.otherExpense : Category.otherIncome
+        for i in entries.indices where entries[i].categoryId == id { entries[i].categoryId = other }
+        categories.removeAll { $0.id == id }
+        return true
     }
 }
 
 public enum Store {
     private static let encoder: JSONEncoder = { let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; return e }()
+    private static let exporter: JSONEncoder = {
+        let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; e.outputFormatting = [.prettyPrinted, .sortedKeys]; return e
+    }()
     private static let decoder: JSONDecoder = { let x = JSONDecoder(); x.dateDecodingStrategy = .iso8601; return x }()
+
+    /// Dışa aktarma için okunabilir JSON.
+    public static func encode(_ s: AppState) throws -> Data { try exporter.encode(s) }
 
     /// Dosya yoksa yeni durum; bozuksa kenara alır ve yeni durum; **var ama okunamıyorsa nil** (ör. yeniden başlatma
     /// sonrası kilit açılmadan). nil gelince kaydetme: gerçek verinin üzerine boş durum yazılır.

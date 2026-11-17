@@ -2,13 +2,12 @@ import XCTest
 @testable import FYLCore
 
 final class StateTests: XCTestCase {
-    func testLogicalDay() {
-        XCTAssertEqual(logicalDay(d("2026-11-11 00:30"), calendar: cal), d("2026-11-10 00:00"))
-        XCTAssertEqual(logicalDay(d("2026-11-11 04:30"), calendar: cal), d("2026-11-11 00:00"))
-    }
     func testRoundTrip() throws {
-        var s = AppState(); s.profile = profile
-        s.events = [Event(date: d("2026-11-10 12:00"), kind: .answered, nodeId: "i1", tag: "nefret", text: nil, questIndex: nil, itemId: "x")]
+        var s = AppState()
+        s.entries = [Entry(date: d("2026-11-10 12:00"), flow: .expense, amount: 5000, categoryId: "market", note: "x", merchant: "BIM", bankKey: "k")]
+        s.wishes = [Wish(name: "Kulaklık", estimate: 150000)]
+        s.events = [CalEvent(name: "Ali", kind: .birthday, date: d("2026-12-01 00:00"), yearly: true, leadDays: [3, 0], gift: true)]
+        s.giftKeys = ["ali-2026"]
         let u = tmpURL(); try Store.save(s, to: u)
         XCTAssertEqual(Store.load(u), s)
     }
@@ -25,40 +24,46 @@ final class StateTests: XCTestCase {
         var isDir: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: u.path, isDirectory: &isDir) && isDir.boolValue)
     }
-    func testQuestStatusLatestAnsweredPerQuestPerDay() {
-        var s = AppState(); s.profile = profile
-        let n = profile.quests.count
-        let day = d("2026-11-10 00:00")
-        s.events = [
-            Event(date: d("2026-11-10 10:00"), kind: .answered, nodeId: "quest_check", tag: "a", text: nil, questIndex: 0, itemId: nil),
-            Event(date: d("2026-11-10 20:00"), kind: .answered, nodeId: "board", tag: "b", text: nil, questIndex: 0, itemId: nil),
-            Event(date: d("2026-11-10 21:00"), kind: .sent, nodeId: "board", tag: "z", text: nil, questIndex: 0, itemId: nil),
-            Event(date: d("2026-11-11 01:00"), kind: .answered, nodeId: "board", tag: "c", text: nil, questIndex: 0, itemId: nil), // logical day 10
-            Event(date: d("2026-11-11 10:00"), kind: .answered, nodeId: "board", tag: "next", text: nil, questIndex: 0, itemId: nil),
-        ]
-        let r = questStatus(s, on: day, calendar: cal)
-        XCTAssertEqual(r.count, n)
-        XCTAssertEqual(r[0], "c")
-        if n > 1 { XCTAssertNil(r[1]) }
-        XCTAssertEqual(questStatus(AppState(), on: day, calendar: cal), [])
-    }
-    func testDecodesV010State() throws {   // 0.1.0 biçimi: görsel alanların hiçbiri yok
-        let json = """
-        {"profile":{"identity":"Yaratıcı biri","antiVision":"a","vision":"v","enemy":"e","yearGoal":"y","monthProject":"m",
-          "whyStuck":"","quests":["Oku"],"constraints":["Uyku"],"monthStart":"2026-11-10T00:00:00Z"},
-         "settings":{"morning":"10:00","evening":"23:30"},"setupNotes":{"0.1":"not"},
-         "events":[{"date":"2026-11-10T07:00:00Z","kind":"sent","nodeId":"morning","text":"x","itemId":"plan-20261110-m"}],
-         "lastPlan":[{"id":"plan-20261111-m","date":"2026-11-11T07:00:00Z","nodeId":"morning","text":"x"}]}
-        """
-        let u = tmpURL(); try Data(json.utf8).write(to: u)
-        let s = try XCTUnwrap(Store.load(u))
-        XCTAssertEqual(s.profile?.identity, "Yaratıcı biri")
-        XCTAssertEqual(s.events.count, 1)
-        XCTAssertNil(s.events.first?.photoId)
-        XCTAssertEqual(s.lastPlan.count, 1)
-        XCTAssertNil(s.lastPlan.first?.photoId)
-        XCTAssertNil(s.lastPlan.first?.title)
+    func testOldV020StateIsMovedAsideAndFresh() throws {   // 0.2.0 biçimi: profile/events/lastPlan
+        let u = tmpURL()
+        try Data(#"{"settings":{"morning":"10:00","evening":"23:30"},"events":[],"lastPlan":[]}"#.utf8).write(to: u)
+        XCTAssertEqual(Store.load(u), AppState())
         let siblings = try FileManager.default.contentsOfDirectory(atPath: u.deletingLastPathComponent().path)
-        XCTAssertFalse(siblings.contains { $0.hasPrefix("state-corrupt-") })
+        XCTAssertTrue(siblings.contains { $0.hasPrefix("state-corrupt-") })
+    }
+    func testDeleteCategoryMovesEntriesToOther() {
+        var s = AppState()
+        s.entries = [Entry(date: d("2026-11-10 12:00"), flow: .expense, amount: 5000, categoryId: "kira", note: "")]
+        XCTAssertTrue(s.deleteCategory(id: "kira"))
+        XCTAssertNil(s.category("kira"))
+        XCTAssertEqual(s.entries[0].categoryId, Category.otherExpense)
+    }
+    func testDeleteIncomeCategoryMovesToIncomeOther() {
+        var s = AppState()
+        s.entries = [Entry(date: d("2026-11-10 12:00"), flow: .income, amount: 5000, categoryId: "burs", note: "")]
+        XCTAssertTrue(s.deleteCategory(id: "burs"))
+        XCTAssertEqual(s.entries[0].categoryId, Category.otherIncome)
+    }
+    func testOtherCannotBeDeleted() {
+        var s = AppState()
+        XCTAssertFalse(s.deleteCategory(id: "diger")); XCTAssertFalse(s.deleteCategory(id: "diger-gelir"))
+        XCTAssertEqual(s.categories, Category.defaults)
+    }
+    func testRenameKeepsEntryLink() {
+        var s = AppState(); s.renameCategory(id: "market", to: "Süpermarket")
+        XCTAssertEqual(s.category("market")?.name, "Süpermarket")
+    }
+    func testAddCategoryAndEncode() throws {
+        var s = AppState(); let c = s.addCategory(name: "Hobi", flow: .expense)
+        XCTAssertEqual(s.category(c.id)?.name, "Hobi")
+        XCTAssertFalse(try Store.encode(s).isEmpty)
+    }
+    func testDefaultCategories() {
+        XCTAssertEqual(Category.defaults.filter { $0.flow == .expense }.count, 14)
+        XCTAssertEqual(Category.defaults.filter { $0.flow == .income }.map(\.id), ["burs", "maas", "aktarim-gelen", "ek-gelir", "diger-gelir"])
+    }
+    func testEventDefaults() {
+        XCTAssertEqual(CalEvent.defaultLeadDays(.exam), [7, 1, 0])
+        XCTAssertTrue(CalEvent.defaultYearly(.birthday)); XCTAssertFalse(CalEvent.defaultYearly(.task))
     }
 }
