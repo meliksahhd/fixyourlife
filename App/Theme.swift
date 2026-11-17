@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Koyu, serif, tek kırmızı vurgu. Uygulama her zaman koyu temada açılır.
+/// Koyu, serif. Kırmızı = düşüş / fazla harcama, yeşil = artış / az harcama / gelir, altın = nötr vurgu.
+/// Uygulama her zaman koyu temada açılır.
 enum Theme {
     static let bg = Color(hex: 0x0B0B0C), text = Color(hex: 0xEDEBE6), secondary = Color(hex: 0xA8A49D)
-    static let card = Color(hex: 0x151517), accent = Color(hex: 0xE5534B), riskCard = Color(hex: 0x1E1110), line = Color(hex: 0x2A2A2D)
+    static let card = Color(hex: 0x151517), accent = Color(hex: 0xE5534B), line = Color(hex: 0x2A2A2D)
+    static let up = Color(hex: 0x4CAF7A), down = accent, tint = Color(hex: 0xC9A66B)
 }
 
 extension Color {

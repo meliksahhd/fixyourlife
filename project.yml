@@ -24,11 +24,16 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIBackgroundModes: [fetch]
-        BGTaskSchedulerPermittedIdentifiers: [com.meliksahhd.fixyourlife.photos]
+        BGTaskSchedulerPermittedIdentifiers: [com.meliksahhd.fixyourlife.refresh]
+        LSSupportsOpeningDocumentsInPlace: false
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Excel
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [org.openxmlformats.spreadsheetml.sheet]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.meliksahhd.fixyourlife
-        MARKETING_VERSION: 0.2.0
+        MARKETING_VERSION: 0.3.0
         CURRENT_PROJECT_VERSION: 1
         VERSIONING_SYSTEM: apple-generic
         TARGETED_DEVICE_FAMILY: 1

@@ -3,17 +3,23 @@ import UserNotifications
 import BackgroundTasks
 import FYLCore
 
+enum AppTab: Hashable { case summary, entries, wishes, calendar }
+
 @MainActor final class AppModel: ObservableObject {
-    /// Bildirim aksiyonu uygulamayı arka planda başlattığında da (ekran çizilmeden) var olmalı.
+    /// Bildirime dokunma uygulamayı başlattığında da (ekran çizilmeden) var olmalı.
     static let shared = AppModel()
+    static let refreshTaskId = "com.meliksahhd.fixyourlife.refresh"
 
     @Published var state: AppState
-    let content: Content
+    @Published var rates: RatesSnapshot?
+    @Published var ratesFailed = false
+    @Published var tab: AppTab = .summary
+    @Published var importMessage: String?
     let notifier = Notifier()
-    let photos = PhotoCache()
-    static let photoTaskId = "com.meliksahhd.fixyourlife.photos"
-    private let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("state.json")
+    private static func file(_ name: String) -> URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent(name)
+    }
+    private let url = AppModel.file("state.json"), ratesURL = AppModel.file("rates.json")
 
     /// false: state.json var ama okunamadı (yeniden başlatma sonrası kilit açılmadan). Bu durumda hiçbir şey
     /// kaydedilmez ve planlanmaz, yoksa gerçek verinin üzerine boş durum yazılır. Uygulama öne gelince yeniden denenir.
@@ -21,14 +27,10 @@ import FYLCore
     private var applying: Task<Void, Never>?
 
     private init() {
-        guard let u = Bundle.main.url(forResource: "system", withExtension: "json"),
-              let data = try? Data(contentsOf: u), let c = try? Content.load(data)
-        else { fatalError("system.json yüklenemedi") }   // Task 3 testi gömülü içeriğin geçerliliğini garanti eder
-        content = c
         let loaded = Store.load(url)
         state = loaded ?? AppState(); loaded_ = loaded != nil
+        rates = (try? Data(contentsOf: ratesURL)).flatMap(parseRates)
         notifier.model = self
-        notifier.registerCategories(c)
         UNUserNotificationCenter.current().delegate = notifier
     }
 
@@ -37,129 +39,78 @@ import FYLCore
         do { try Store.save(state, to: url) } catch { print("state.json kaydedilemedi: \(error)") }
     }
 
-    /// Bildirimleri yeniden kurar. iOS çağrıları sırayla yapılır (önceki bitmeden yenisi başlamaz).
-    func replan() {
+    func update(_ change: (inout AppState) -> Void) {
+        guard loaded_ else { return }
+        change(&state)
+        save()
+        reschedule()
+    }
+
+    /// Hediye maddelerini ekler ve bildirimleri yeniden kurar. iOS çağrıları sırayla yapılır (önceki bitmeden yenisi başlamaz).
+    func reschedule() {
         guard reloadIfNeeded() else { return }
         let now = Date()
-        state.events += harvestSent(previous: state.lastPlan, now: now)
-        let items = assignPhotos(plan(now: now, state: state, content: content, calendar: .current),
-                                 previous: state.lastPlan, available: photos.available(), shown: shownPhotos(state))
-        state.lastPlan = items
+        state.addGiftWishes(now: now, calendar: .current)
         save()
+        let rs = reminders(state.events, now: now, minuteOfDay: state.settings.calendarMinute, calendar: .current)
+        let noon = state.settings.wishReminder ? noonBody(state.wishes) : nil, minute = state.settings.wishMinute
         let previous = applying
-        applying = Task { [notifier, photos] in await previous?.value; await notifier.apply(items, cache: photos) }
-    }
-
-    @Published private(set) var photoKey = Keychain.get("unsplashKey") != nil
-
-    /// nil siler. Fotoğraflar önbellekte kalır; yalnızca yenileri gelmez.
-    func setPhotoKey(_ key: String?) {
-        Keychain.set("unsplashKey", key)
-        photoKey = key != nil
-        if key != nil { Task { await refreshPhotos() } }
-    }
-
-    private var refreshing = false
-
-    /// Önbelleği doldurur (ön plan ve arka plan yenilemesi). Anahtar yoksa ya da ağ hatasında sessizce durur.
-    func refreshPhotos() async {
-        guard !refreshing, reloadIfNeeded(), let key = Keychain.get("unsplashKey") else { return }
-        refreshing = true; defer { refreshing = false }
-        let client = UnsplashClient(key: key), target = 6, defaults = UserDefaults.standard
-        var queries = content.nodes.compactMapValues(\.imageQueries)
-        if state.setupDate != nil {
-            for (g, group) in content.protocolMorning.enumerated() { if let q = group.imageQueries { queries["setup.\(g)"] = q } }
+        applying = Task { [notifier] in
+            await previous?.value
+            await notifier.apply(reminders: rs, noon: noon, noonMinute: minute)
         }
-        let shown = shownPhotos(state)
-        let reserved = protectedPhotos(state, now: Date(), calendar: .current)
-        var avail = photos.available(), changed = false
-        // Önce yakında bildirimi olan düğümler ve kurulum soruları; kalan bütçe ötekilere (takipler, sonraki sorular).
-        let soon = Set(state.lastPlan.map(\.nodeId)).union(queries.keys.filter { $0.hasPrefix("setup.") })
-        func pick(_ keep: (String) -> Bool, _ budget: Int) -> [String] {
-            refillOrder(queries: queries.filter { keep($0.key) }, available: avail, shown: shown, reserved: reserved, target: target, budget: budget)
-        }
-        let first = pick(soon.contains, 10)
-        let order = first + pick({ !soon.contains($0) }, 10 - first.count)
-        nodes: for node in order {
-            guard let q = queries[node]?.randomElement() else { continue }
-            var need = target - (avail[node] ?? []).filter { !shown.contains($0) && !reserved.contains($0) }.count
-            let pageKey = "unsplashPage.\(node)", page = max(defaults.integer(forKey: pageKey), 1)
-            let results: [UnsplashPhoto]
-            do { results = try await client.search(q, page: page) } catch { break nodes }   // 401/403/429 ya da ağ: sonraki sefere
-            let cached = Set(avail.values.joined())
-            let fresh = results.filter { !shown.contains($0.id) && !cached.contains($0.id) }
-            // Sayfa tükendiyse sıradaki sefer bir sonraki sayfa; boş sayfa = sonuçların sonu, başa dön.
-            if results.isEmpty { defaults.set(1, forKey: pageKey) } else if fresh.count <= need { defaults.set(page + 1, forKey: pageKey) }
-            for p in fresh where need > 0 {
-                guard (try? await photos.store(p, nodeId: node, client: client)) != nil else { continue }
-                need -= 1; changed = true
-            }
-            avail = photos.available()
-        }
-        let old = prunable(cached: Array(avail.values.joined()), reserved: reserved, shown: shown)
-        photos.remove(old)
-        // Arka plan görevi dönünce iOS uygulamayı askıya alabilir: bildirimler tamamen kurulmadan dönme.
-        if changed || !old.isEmpty { replan(); await applying?.value }
     }
 
-    /// Kurulum sorusunun fotoğrafı: bir kez seçilir ve `setupNotes["foto.<key>"]`de kalır (geri dönünce aynısı).
-    func setupPhoto(key: String, group: Int) -> String? {
-        let k = "foto.\(key)"
-        if let id = state.setupNotes[k], photos.fileURL(id) != nil { return id }
-        let used = Set(state.setupNotes.filter { $0.key.hasPrefix("foto.") }.map(\.value))
-        guard let id = photos.available()["setup.\(group)"]?.first(where: { !used.contains($0) }) else { return nil }
-        state.setupNotes[k] = id; save()
-        return id
+    /// Arka plan yenilemesi: iOS askıya almadan bildirimler kurulmuş olsun.
+    func backgroundRefresh() async {
+        scheduleRefresh()
+        reschedule()
+        await applying?.value
     }
 
-    func schedulePhotoRefresh() {
-        let r = BGAppRefreshTaskRequest(identifier: Self.photoTaskId)
-        r.earliestBeginDate = Date(timeIntervalSinceNow: 6 * 3600)
+    func refreshRates() async {
+        do {
+            let (data, _) = try await URLSession.shared.data(from: URL(string: "https://finans.truncgil.com/v4/today.json")!)
+            guard let r = parseRates(data) else { throw URLError(.cannotParseResponse) }
+            rates = r; ratesFailed = false
+            try? FileManager.default.createDirectory(at: ratesURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try? data.write(to: ratesURL, options: .atomic)
+        } catch { ratesFailed = true }
+    }
+
+    func scheduleRefresh() {
+        let r = BGAppRefreshTaskRequest(identifier: Self.refreshTaskId)
+        r.earliestBeginDate = Date(timeIntervalSinceNow: 12 * 3600)
         try? BGTaskScheduler.shared.submit(r)
+    }
+
+    /// Bildirime dokununca ilgili sekme.
+    func open(_ name: String?) {
+        switch name {
+        case "wishes": tab = .wishes
+        case "calendar": tab = .calendar
+        default: break
+        }
+    }
+
+    /// Ziraat Mobil → Hesap Hareketleri → Paylaş → Excel. Yanlış dosya: hiçbir şey eklenmez, nedeni söylenir.
+    func importBank(_ url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        guard let data = try? Data(contentsOf: url),
+              let xml = zipEntry(data, where: { $0.hasPrefix("xl/worksheets/") && $0.hasSuffix(".xml") }, inflate: inflateRaw),
+              let rows = ziraatRows(parseSheet(xml), calendar: .current), !rows.isEmpty
+        else { importMessage = "Bu dosya Ziraat hesap hareketleri gibi görünmüyor"; return }
+        var result: ImportResult?
+        update { result = $0.importBank(rows, calendar: .current) }
+        guard let r = result else { return }
+        importMessage = "\(r.added) yeni hareket eklendi · \(r.skipped) atlandı · \(r.duplicates) zaten vardı"
+        tab = .entries
     }
 
     private func reloadIfNeeded() -> Bool {
         if !loaded_, let s = Store.load(url) { state = s; loaded_ = true }
         return loaded_
-    }
-
-    /// Bildirim butonu. Dokunma/kapatma ve tanınmayan aksiyonlar yok sayılır.
-    /// Bildirim butonu. iOS arka plan süresini bitirmeden (completionHandler'dan önce) bildirimler kurulmuş olur.
-    func receive(_ response: UNNotificationResponse) async {
-        guard reloadIfNeeded() else { return }
-        let info = response.notification.request.content.userInfo
-        let parts = response.actionIdentifier.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2, let i = Int(parts[0]),
-              let itemId = info["itemId"] as? String, let nodeId = info["nodeId"] as? String,
-              let buttons = content.nodes[nodeId]?.buttons, buttons.indices.contains(i), buttons[i].tag == parts[1]
-        else { return }
-        let reply = Reply(itemId: itemId, nodeId: nodeId, buttonIndex: i,
-                          text: (response as? UNTextInputNotificationResponse)?.userText,
-                          questIndex: info["questIndex"] as? Int, depth: info["depth"] as? Int ?? 1)
-        var rng = SystemRandomNumberGenerator()
-        if let f = handle(reply, at: Date(), content: content, state: &state, rng: &rng) {
-            // Ağ yok: önbellekten. itemId nil: handle() kök tarihini itemId ile arar, takip olayı onu gölgelememeli.
-            let photo = pickFollowUpPhoto(nodeId: f.nodeId, available: photos.available(),
-                                          shown: shownPhotos(state), reserved: reservedPhotos(state.lastPlan))
-            if let p = photo { state.events.append(Event(date: Date(), kind: .sent, nodeId: f.nodeId, text: f.text, itemId: nil, photoId: p)) }
-            await notifier.send(f, itemId: itemId, title: info["title"] as? String, thread: info["thread"] as? String,
-                                photoURL: photo.flatMap(photos.fileURL))
-        }
-        replan()
-        await applying?.value
-    }
-
-    /// Ayarlardaki "Test bildirimi": takipli + metin girişli bir dalı olan kesinti 60 sn sonra gelir.
-    /// Bildirimlerin, butonların ve takiplerin cihazda çalıştığını kontrol etmek için. Durumu değiştirmez.
-    func sendTestInterrupt() {
-        guard let text = content.nodes["i_alive"]?.texts.lazy.compactMap({ render($0, profile: self.state.profile, questIndex: nil) }).first
-        else { return }
-        let photo = photos.available()["i_alive"]?.first.flatMap(photos.fileURL)
-        Task { [notifier] in
-            await notifier.send(FollowUp(nodeId: "i_alive", text: text, questIndex: nil, depth: 1),
-                                itemId: "test-\(Int(Date().timeIntervalSince1970))", title: "Kesinti · test", thread: "test",
-                                photoURL: photo, after: 60)
-        }
     }
 }
 
@@ -179,33 +130,37 @@ struct FixYourLifeApp: App {
         UINavigationBar.appearance().titleTextAttributes = [.font: serif(.headline)]
     }
 
-    /// Protokol yeniden çalışıyorsa (profil var), kurulum günü gelince kurulum ekranı açılır; o güne kadar tahta.
-    private var isSetupDay: Bool {
-        guard let s = model.state.setupDate else { return false }
-        return Calendar.current.startOfDay(for: s) <= logicalDay(Date(), calendar: .current)
-    }
-
     var body: some Scene {
         WindowGroup {
-            Group {
-                if model.state.profile == nil || isSetupDay { SetupView() } else { BoardView() }
+            TabView(selection: $model.tab) {
+                SummaryView().tabItem { Label("Özet", systemImage: "chart.pie") }.tag(AppTab.summary)
+                EntriesView().tabItem { Label("Hareketler", systemImage: "list.bullet") }.tag(AppTab.entries)
             }
             .environmentObject(model)
+            .environment(\.locale, Locale(identifier: "tr_TR"))
             .preferredColorScheme(.dark)
-            .tint(Theme.accent)
+            .tint(Theme.tint)
+            .onOpenURL { model.importBank($0) }
+            .alert(model.importMessage ?? "", isPresented: Binding(get: { model.importMessage != nil },
+                                                                   set: { if !$0 { model.importMessage = nil } })) {
+                Button("Tamam") {}
+            }
         }
         .onChange(of: phase, initial: true) { _, p in
             if p == .active {
-                model.replan()
-                Task { await model.refreshPhotos() }
+                // İzin önce: ilk açılışta sistem sorar, sonra bildirimler kurulur.
+                Task {
+                    _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+                    model.reschedule()
+                }
+                Task { await model.refreshRates() }
             } else if p == .background {
                 model.save()
-                model.schedulePhotoRefresh()
+                model.scheduleRefresh()
             }
         }
-        .backgroundTask(.appRefresh(AppModel.photoTaskId)) {
-            await AppModel.shared.schedulePhotoRefresh()
-            await AppModel.shared.refreshPhotos()
+        .backgroundTask(.appRefresh(AppModel.refreshTaskId)) {
+            await AppModel.shared.backgroundRefresh()
         }
     }
 }
