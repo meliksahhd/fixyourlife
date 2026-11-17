@@ -1,14 +1,12 @@
 # FixYourLife — proje notu
 
-Kullanıcının kişisel iPhone uygulaması: Dan Koe'nun "How to fix your entire life in 1 day" sistemini (ve ileride eklenecek makaleleri, tek tutarlı sistem olarak sentezlenmiş hâlde) bildirim + hazır cevap butonlarıyla günlük hayata uygulatır.
+Kullanıcının kişisel iPhone uygulaması: para (Ziraat Excel içe aktarma, kategoriler), kurlar (Truncgil), istek listesi (öğlen hatırlatması) ve takvim (gruplanmış hatırlatmalar). Sürüm 0.3.0; bundle id, ASC uygulaması ve Codemagic aynı.
 
-- Tasarım: `docs/superpowers/specs/2026-11-03-fixyourlife-design.md` — tüm kararlar orada.
-- Kaynak makaleler (tam metin): `content/sources/`
-- Yığın: SwiftUI, yerel bildirimler, Codemagic → TestFlight. Kullanıcıda Mac yok (Windows), Apple Developer hesabı var.
+- Tasarım: `docs/superpowers/specs/2026-11-13-para-liste-takvim-design.md`
+- Plan: `docs/superpowers/plans/2026-11-14-para-liste-takvim.md`
+- Yığın: SwiftUI, yerel bildirimler, Codemagic → TestFlight. Mac yok (Windows), yerelde Swift yok; doğrulama GitHub Actions ile.
+- Gizlilik: gerçek banka dışa aktarımları (`*.xlsx`, `*.pdf`) repoya asla girmez; repo herkese açık.
 - Dil: her şey Türkçe.
 
-## Durum (2026-11-04)
-Plan 1'in (`docs/superpowers/plans/2026-11-03-fixyourlife-plan-1-cekirdek.md`) tüm kodu `plan-1` dalında; Linux testleri + iOS simülatör derlemesi CI'da yeşil. **Sıradaki adım:** 2026-11-08 Pazar Apple/Codemagic kurulumu (`docs/kurulum.md`) → etiket → TestFlight → cihazda Task 8/9 doğrulaması ve bir gün yaşama. Ardından `plan-1` → `main` birleştirme.
-
-## Makale ekleme akışı
-Kullanıcı yeni makale linki getirdiğinde: tam metni `content/sources/` altına kaydet → sisteme ne kattığını belirle → çakışanları birleştir, çelişkileri kullanıcıya sor → `content/system.json` + `content/CHANGELOG.md` güncelle. Günlük bildirim sayısı sabit kalır; omurga Dan Koe oyun yapısı.
+## Durum (2026-11-17)
+Planın 9 görevinin kodu `plan-2-gorsel` dalında; `test` + `ios-build` yeşil. **Sıradaki adım:** `build-3` etiketi → TestFlight 0.3.0 → cihaz kontrolü (`docs/kurulum.md`, plan Görev 9 Adım 3) → `main`'e birleştirme.
