@@ -9,5 +9,5 @@ Kullanıcının kişisel iPhone uygulaması: para (Ziraat Excel içe aktarma, ka
 - Dil: her şey Türkçe.
 - Veri uyumluluğu: `AppState`/`Settings`/modellere zorunlu (optional olmayan) alan eklerken `decodeIfPresent`'li `init(from:)` yaz. Sentezlenen `Codable` eksik anahtarda hata verir → `Store.load` eski `state.json`'u bozuk sayıp kenara alır, uygulama boş açılır.
 
-## Durum (2026-11-17)
-Planın 9 görevinin kodu `plan-2-gorsel` dalında; `test` + `ios-build` yeşil. **Sıradaki adım:** `build-3` etiketi → TestFlight 0.3.0 → cihaz kontrolü (`docs/kurulum.md`, plan Görev 9 Adım 3) → `main`'e birleştirme.
+## Durum (2026-11-24)
+Planın 9 görevi `plan-2-gorsel` dalında; son dal incelemesi temiz. `build-3` Codemagic'te yeşil bitti → TestFlight 0.3.0. **Sıradaki adım:** cihaz kontrolü (`docs/kurulum.md`, plan Görev 9 Adım 3; ilk gerçek Ziraat Excel içe aktarma kritik) → `main`'e birleştirme. Bekleyen küçükler: silinen içe aktarılmış hareket yeniden içe aktarımda geri geliyor; "Kopyala" ile açılan Excel Inbox'ta kalıyor.
