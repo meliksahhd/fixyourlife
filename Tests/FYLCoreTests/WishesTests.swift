@@ -17,6 +17,9 @@ final class WishesTests: XCTestCase {
         XCTAssertEqual(noonBody(w), "Bugün alabilirsin: c, d, e")
         w[2].boughtAt = d("2026-11-01 10:00"); w[3].boughtAt = d("2026-11-01 10:00"); w[4].boughtAt = d("2026-11-01 10:00")
         XCTAssertNil(noonBody(w))
+        var ev = Wish(name: "Ev"); ev.remind = false
+        XCTAssertNil(noonBody([ev]))
+        XCTAssertEqual(noonBody([ev, Wish(name: "kalem")]), "Bugün alabilirsin: kalem")
     }
     func testBuyCreatesExpense() {
         var s = AppState(); let w = Wish(name: "bilgisayar çantası", estimate: 90000); s.wishes = [w]

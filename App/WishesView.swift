@@ -22,6 +22,10 @@ struct WishesView: View {
                         Button { editing = w } label: {
                             HStack {
                                 Text(w.name).foregroundStyle(Theme.text)
+                                if !w.remind {
+                                    Image(systemName: "bell.slash").font(.caption).foregroundStyle(Theme.secondary)
+                                        .accessibilityLabel("Bildirim kapalı")
+                                }
                                 Spacer()
                                 if let e = w.estimate { Text(formatTL(e)).monospacedDigit().foregroundStyle(Theme.secondary) }
                             }
@@ -68,11 +72,13 @@ struct WishForm: View {
     let wish: Wish?
     @State private var name: String
     @State private var estimate: String
+    @State private var remind: Bool
 
     init(wish: Wish?) {
         self.wish = wish
         _name = State(initialValue: wish?.name ?? "")
         _estimate = State(initialValue: wish?.estimate.map(amountText) ?? "")
+        _remind = State(initialValue: wish?.remind ?? true)
     }
 
     private var trimmed: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -83,6 +89,7 @@ struct WishForm: View {
             Form {
                 TextField("Ad", text: $name)
                 TextField("Tahmini fiyat (₺, isteğe bağlı)", text: $estimate).keyboardType(.decimalPad)
+                Toggle("Öğle bildiriminde hatırlat", isOn: $remind)
             }
             .themedForm()
             .navigationTitle(wish == nil ? "Yeni madde" : "Düzenle")
@@ -97,12 +104,13 @@ struct WishForm: View {
     }
 
     private func save() {
-        let n = trimmed, k = parseKurus(estimate)
+        let n = trimmed, k = parseKurus(estimate), r = remind
         model.update { s in
             if let i = s.wishes.firstIndex(where: { $0.id == wish?.id }) {
-                s.wishes[i].name = n; s.wishes[i].estimate = k
+                s.wishes[i].name = n; s.wishes[i].estimate = k; s.wishes[i].remind = r
             } else {
-                s.wishes.append(Wish(name: n, estimate: k))
+                var w = Wish(name: n, estimate: k); w.remind = r
+                s.wishes.append(w)
             }
         }
         dismiss()

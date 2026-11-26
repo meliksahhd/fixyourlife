@@ -11,6 +11,24 @@ final class StateTests: XCTestCase {
         let u = tmpURL(); try Store.save(s, to: u)
         XCTAssertEqual(Store.load(u), s)
     }
+    func testV030WishAndSettingsDecodeWithDefaults() throws {   // 0.3.0: `remind` ve `theme` anahtarı yok
+        let w = try JSONDecoder().decode(Wish.self, from: Data(#"{"id":"\#(UUID().uuidString)","name":"Ev"}"#.utf8))
+        XCTAssertTrue(w.remind); XCTAssertEqual(w.name, "Ev")
+        let st = try JSONDecoder().decode(Settings.self, from: Data(#"{"wishReminder":false,"wishMinute":700,"calendarMinute":500}"#.utf8))
+        XCTAssertFalse(st.wishReminder); XCTAssertEqual(st.wishMinute, 700); XCTAssertEqual(st.calendarMinute, 500)
+        XCTAssertEqual(st.theme, AppTheme())
+        XCTAssertFalse(AppTheme().isLight)
+        var light = AppTheme(); light.bg = 0xF5F2EA; XCTAssertTrue(light.isLight)
+    }
+    func testSetBackgroundKeepsTextReadable() {
+        var t = AppTheme(); t.tint = 0x6EA8FE
+        t.setBackground(0xFFFFFF)
+        XCTAssertEqual(t.text, 0x1A1A1A); XCTAssertEqual(t.card, 0xFFFFFF); XCTAssertEqual(t.tint, 0x6EA8FE)
+        t.text = 0x2B2622; t.setBackground(0xF5F2EA)   // açık → açık: kullanıcının seçimi korunur
+        XCTAssertEqual(t.text, 0x2B2622)
+        t.setBackground(0x0F1620)
+        XCTAssertEqual(t.text, AppTheme().text); XCTAssertEqual(t.card, AppTheme().card)
+    }
     func testMissingFileGivesFresh() { XCTAssertEqual(Store.load(tmpURL()), AppState()) }
     func testCorruptFileIsPreserved() throws {
         let u = tmpURL(); try Data("çöp".utf8).write(to: u)

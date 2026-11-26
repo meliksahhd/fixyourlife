@@ -32,10 +32,19 @@ public struct Entry: Codable, Equatable, Identifiable {
 public struct Wish: Codable, Equatable, Identifiable {
     public var id: UUID; public var name: String; public var estimate: Kurus?
     public var boughtAt: Date?; public var paid: Kurus?; public var giftKey: String?
+    public var remind = true   // false: öğle bildirimine girmez (ör. "Ev")
     public init(id: UUID = UUID(), name: String, estimate: Kurus? = nil, boughtAt: Date? = nil,
                 paid: Kurus? = nil, giftKey: String? = nil) {
         self.id = id; self.name = name; self.estimate = estimate; self.boughtAt = boughtAt
         self.paid = paid; self.giftKey = giftKey
+    }
+    public init(from decoder: Decoder) throws {   // 0.3.0 kayıtlarında `remind` yok
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id); name = try c.decode(String.self, forKey: .name)
+        estimate = try c.decodeIfPresent(Kurus.self, forKey: .estimate)
+        boughtAt = try c.decodeIfPresent(Date.self, forKey: .boughtAt)
+        paid = try c.decodeIfPresent(Kurus.self, forKey: .paid); giftKey = try c.decodeIfPresent(String.self, forKey: .giftKey)
+        remind = try c.decodeIfPresent(Bool.self, forKey: .remind) ?? true
     }
 }
 

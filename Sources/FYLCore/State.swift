@@ -2,7 +2,34 @@ import Foundation
 
 public struct Settings: Codable, Equatable {
     public var wishReminder = true; public var wishMinute = 750; public var calendarMinute = 540
+    public var theme = AppTheme()
     public init() {}
+    public init(from decoder: Decoder) throws {   // 0.3.0 kayıtlarında `theme` yok
+        let c = try decoder.container(keyedBy: CodingKeys.self), d = Settings()
+        wishReminder = try c.decodeIfPresent(Bool.self, forKey: .wishReminder) ?? d.wishReminder
+        wishMinute = try c.decodeIfPresent(Int.self, forKey: .wishMinute) ?? d.wishMinute
+        calendarMinute = try c.decodeIfPresent(Int.self, forKey: .calendarMinute) ?? d.calendarMinute
+        theme = try c.decodeIfPresent(AppTheme.self, forKey: .theme) ?? d.theme
+    }
+}
+
+/// Kullanıcı teması; renkler 0xRRGGBB. Alan eklerken `decodeIfPresent`'li `init(from:)` yaz.
+public struct AppTheme: Codable, Hashable {
+    public var bg = 0x0B0B0C, card = 0x151517, text = 0xEDEBE6, secondary = 0xA8A49D
+    public var up = 0x4CAF7A, down = 0xE5534B, tint = 0xC9A66B
+    public init() {}
+    /// Açık zemin mi: sistem öğeleri (gezinme çubuğu, sekme çubuğu) buna göre açık/koyu çizilir.
+    public var isLight: Bool {
+        let r = Double((bg >> 16) & 0xFF), g = Double((bg >> 8) & 0xFF), b = Double(bg & 0xFF)
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5
+    }
+    /// Zemin açık↔koyu geçince yazı, ikincil yazı ve kart da uyumlu renge döner (beyaz zeminde beyaz yazı olmasın).
+    public mutating func setBackground(_ hex: Int) {
+        let wasLight = isLight; bg = hex
+        guard isLight != wasLight else { return }
+        if isLight { card = 0xFFFFFF; text = 0x1A1A1A; secondary = 0x6B655E }
+        else { let d = AppTheme(); card = d.card; text = d.text; secondary = d.secondary }
+    }
 }
 
 public struct AppState: Codable, Equatable {

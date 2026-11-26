@@ -10,6 +10,9 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section("Görünüm") {
+                NavigationLink("Tema") { ThemeView() }
+            }
             Section("Alınacaklar") {
                 Toggle("Öğle hatırlatması", isOn: bind(\.settings.wishReminder))
                 if model.state.settings.wishReminder {

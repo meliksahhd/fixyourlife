@@ -10,7 +10,7 @@ enum AppTab: Hashable { case summary, entries, wishes, calendar }
     static let shared = AppModel()
     static let refreshTaskId = "com.meliksahhd.fixyourlife.refresh"
 
-    @Published var state: AppState
+    @Published var state: AppState { didSet { Theme.current = state.settings.theme } }
     @Published var rates: RatesSnapshot?
     @Published var ratesFailed = false
     @Published var tab: AppTab = .summary
@@ -29,6 +29,7 @@ enum AppTab: Hashable { case summary, entries, wishes, calendar }
     private init() {
         let loaded = Store.load(url)
         state = loaded ?? AppState(); loaded_ = loaded != nil
+        Theme.current = state.settings.theme   // init'te didSet çalışmaz
         rates = (try? Data(contentsOf: ratesURL)).flatMap(parseRates)
         notifier.model = self
         UNUserNotificationCenter.current().delegate = notifier
@@ -140,7 +141,7 @@ struct FixYourLifeApp: App {
             }
             .environmentObject(model)
             .environment(\.locale, Locale(identifier: "tr_TR"))
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(model.state.settings.theme.isLight ? .light : .dark)
             .tint(Theme.tint)
             .onOpenURL { model.importBank($0) }
             .alert(model.importMessage ?? "", isPresented: Binding(get: { model.importMessage != nil },

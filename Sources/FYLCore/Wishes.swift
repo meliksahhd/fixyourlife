@@ -5,7 +5,7 @@ public func pendingTotal(_ wishes: [Wish]) -> Kurus {
 }
 
 public func noonBody(_ wishes: [Wish]) -> String? {
-    let names = wishes.filter { $0.boughtAt == nil }.map(\.name)
+    let names = wishes.filter { $0.boughtAt == nil && $0.remind }.map(\.name)
     guard !names.isEmpty else { return nil }
     return "Bugün alabilirsin: " + names.prefix(3).joined(separator: ", ") + (names.count > 3 ? " +\(names.count - 3)" : "")
 }
